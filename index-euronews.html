@@ -1,0 +1,467 @@
+<!DOCTYPE html><html lang="sq">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Euronews Albania • Intranet Telesales</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            brand: {
+              DEFAULT: '#0172F0'
+            }
+          },
+          fontFamily: {
+            sans: ["Inter", "system-ui", "Segoe UI", "Roboto", "Helvetica", "Arial", "sans-serif"]
+          }
+        }
+      }
+    };
+  </script>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body class="bg-slate-50 text-slate-800 font-sans">
+  <header class="bg-brand text-white p-4">
+    <div class="max-w-6xl mx-auto flex items-center justify-between">
+      <h1 class="text-lg font-bold">Euronews Albania • Intranet</h1>
+      <nav class="space-x-4 text-sm">
+        <a href="#njoftime" class="hover:underline">Njoftime</a>
+        <a href="#kontaktet" class="hover:underline">Baza e Bizneseve</a>
+        <a href="#procedurat" class="hover:underline">Procedurat</a>
+        <a href="#paketat" class="hover:underline">Paketa & Ofertat</a>
+        <a href="#vip" class="hover:underline">Klientë VIP</a>
+        <a href="#materiale" class="hover:underline">Materiale</a>
+        <a href="#helpdesk" class="hover:underline">IT Helpdesk</a>
+      </nav>
+    </div>
+  </header> <main class="max-w-6xl mx-auto p-6 space-y-6">
+    <!-- Njoftime -->
+    <section id="njoftime" class="bg-white rounded-lg shadow p-4">
+      <h2 class="text-base font-semibold mb-3">Njoftime të Brendshme</h2>
+      <ul class="space-y-2 text-sm" id="annList">
+        <li>📢 Trajnim: Paketat e reja të reklamave – e premte, 10:00</li>
+        <li>🎯 Objektivi ditor për agjent: <b>60 telefonata</b>, <b>6 takime</b>, <b>1 ofertë</b></li>
+        <li>📝 Përdorni skriptet e miratuara dhe shënoni rezultatin e çdo telefonate</li>
+      </ul>
+    </section><!-- Skedarë roli -->
+<section class="bg-white rounded-lg shadow p-4">
+  <div class="flex flex-wrap gap-2 mb-4" id="roleTabs">
+    <button data-tab="telesales" class="tabBtn bg-brand text-white px-3 py-1.5 rounded text-sm">Telesales</button>
+    <button data-tab="terren" class="tabBtn bg-slate-100 px-3 py-1.5 rounded text-sm">Agjentë Terreni</button>
+    <button data-tab="drejtues" class="tabBtn bg-slate-100 px-3 py-1.5 rounded text-sm">Drejtues</button>
+  </div>
+
+  <!-- PANEL: Telesales -->
+  <div id="tab-telesales" class="tabPanel space-y-6">
+    <!-- KPI të shpejta -->
+    <section class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div class="p-3 border rounded text-center">
+        <p class="text-sm text-slate-500">Telefonata (sot)</p>
+        <p class="text-2xl font-bold" id="kpiCalls">0</p>
+      </div>
+      <div class="p-3 border rounded text-center">
+        <p class="text-sm text-slate-500">Takime të planifikuara</p>
+        <p class="text-2xl font-bold" id="kpiMeetings">0</p>
+      </div>
+      <div class="p-3 border rounded text-center">
+        <p class="text-sm text-slate-500">Ofertat dërguara</p>
+        <p class="text-2xl font-bold" id="kpiQuotes">0</p>
+      </div>
+    </section>
+
+    <!-- Skripte & Objection handling -->
+    <section class="bg-slate-50 border rounded p-4">
+      <h3 class="font-semibold text-sm mb-3">Skriptet e Telefonatave & Reagimet ndaj kundërshtimeve</h3>
+      <div class="grid md:grid-cols-2 gap-4 text-sm">
+        <div>
+          <p class="font-medium">Hapja e bisedës</p>
+          <p class="mt-1">“Përshëndetje, jam <i>Emri</i> nga Euronews Albania. Po flas me <i>Emri i kontaktit</i>? Po ju shkruaj për mundësinë e promovimit të biznesit tuaj në Euronews…”</p>
+          <p class="mt-2 font-medium">Kualifikimi i shkurtër</p>
+          <ul class="list-disc ml-5">
+            <li>“Si e matni aktualisht rezultatin e reklamave?”</li>
+            <li>“A keni fushata aktive këtë muaj?”</li>
+            <li>“Cili është produkti që doni të promovoni?”</li>
+          </ul>
+        </div>
+        <div>
+          <p class="font-medium">Kundërshtime tipike</p>
+          <ul class="list-disc ml-5">
+            <li><b>“Është e shtrenjtë.”</b> → “Mund ta nisim me paketën hyrëse dhe verifikojmë performancën me indikatorë të qartë.”</li>
+            <li><b>“S’jemi gati.”</b> → “Propozoj një kalendar promo për 2 javë dhe materialet i përgatisim bashkë.”</li>
+            <li><b>“S’na sjell klientë.”</b> → “Do vendosim UTM/landing dhe raportim javë pas jave.”</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Baza e bizneseve & Quick Actions -->
+    <section id="kontaktet" class="bg-white rounded border p-4">
+      <div class="flex flex-col sm:flex-row gap-2 sm:items-center sm:justify-between mb-3">
+        <h3 class="font-semibold text-sm">Baza e Bizneseve</h3>
+        <div class="flex gap-2">
+          <input id="searchBiz" type="search" placeholder="Kërko biznes / industri / qytet…" class="border rounded px-3 py-2 text-sm w-64">
+          <button class="bg-brand text-white px-3 py-2 rounded text-sm" id="btnImport">Import CSV</button>
+          <button class="bg-slate-100 px-3 py-2 rounded text-sm" id="btnExport">Export</button>
+        </div>
+      </div>
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm border-collapse" id="bizTable">
+          <thead>
+            <tr class="border-b">
+              <th class="text-left py-2 pr-3">Biznesi</th>
+              <th class="text-left py-2 pr-3">Kontakti</th>
+              <th class="text-left py-2 pr-3">Telefoni</th>
+              <th class="text-left py-2 pr-3">Statusi</th>
+              <th class="text-left py-2 pr-3">Hapi i radhës</th>
+              <th class="text-left py-2 pr-3">Agjenti</th>
+              <th class="text-left py-2 pr-3">Data e rikthimit</th>
+              <th class="text-left py-2">Veprime</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr class="border-b">
+              <td>Restorant Tirana</td>
+              <td>Arben Kola</td>
+              <td>+355 68 22 33 444</td>
+              <td><span class="text-green-600">I interesuar</span></td>
+              <td>Planifiko takim</td>
+              <td>Erisa</td>
+              <td>2025-08-20</td>
+              <td class="whitespace-nowrap">
+                <button class="quickBtn text-xs bg-emerald-600 text-white px-2 py-1 rounded">Takim</button>
+                <button class="quickBtn text-xs bg-amber-600 text-white px-2 py-1 rounded">Oferta</button>
+                <button class="quickBtn text-xs bg-slate-200 px-2 py-1 rounded">No Answer</button>
+              </td>
+            </tr>
+            <tr class="border-b">
+              <td>Alba Market</td>
+              <td>Mirela Hoxha</td>
+              <td>+355 67 55 66 777</td>
+              <td><span class="text-yellow-600">Në ndjekje</span></td>
+              <td>Dërgo prezantim</td>
+              <td>Ardit</td>
+              <td>2025-08-21</td>
+              <td class="whitespace-nowrap">
+                <button class="quickBtn text-xs bg-emerald-600 text-white px-2 py-1 rounded">Takim</button>
+                <button class="quickBtn text-xs bg-amber-600 text-white px-2 py-1 rounded">Oferta</button>
+                <button class="quickBtn text-xs bg-slate-200 px-2 py-1 rounded">No Answer</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <!-- PANEL: Agjentë Terreni -->
+  <div id="tab-terren" class="tabPanel hidden space-y-6">
+    <section class="grid sm:grid-cols-3 gap-4">
+      <div class="p-3 border rounded text-center">
+        <p class="text-sm text-slate-500">Takime sot</p>
+        <p class="text-2xl font-bold" id="kpiFieldMeet">0</p>
+      </div>
+      <div class="p-3 border rounded text-center">
+        <p class="text-sm text-slate-500">Takime të konfirmuara</p>
+        <p class="text-2xl font-bold" id="kpiFieldConf">0</p>
+      </div>
+      <div class="p-3 border rounded text-center">
+        <p class="text-sm text-slate-500">Kontrata (javë)</p>
+        <p class="text-2xl font-bold" id="kpiFieldDeals">0</p>
+      </div>
+    </section>
+
+    <!-- Itinerari i ditës -->
+    <section class="bg-white rounded border p-4">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-semibold text-sm">Itinerari i Ditës</h3>
+        <button class="bg-slate-100 px-3 py-2 rounded text-sm">Harto rrugën</button>
+      </div>
+      <ul class="text-sm space-y-2" id="routeList">
+        <li>09:30 • <b>Restorant Tirana</b> — prezantim paketash</li>
+        <li>11:00 • <b>AutoParts Shpk</b> — mbledhje kërkesash</li>
+        <li>15:30 • <b>Alba Market</b> — diskutim çmimesh</li>
+      </ul>
+    </section>
+
+    <!-- Shpenzime të shpejta -->
+    <section class="bg-slate-50 rounded border p-4">
+      <h3 class="font-semibold text-sm mb-2">Deklaro Shpenzim (Quick)</h3>
+      <form class="grid sm:grid-cols-4 gap-2 text-sm" onsubmit="event.preventDefault(); alert('U ruajt (demo)');">
+        <input class="border rounded px-2 py-2" placeholder="Përshkrimi (p.sh. karburant)">
+        <input class="border rounded px-2 py-2" placeholder="Vlera (ALL)">
+        <input class="border rounded px-2 py-2" type="date">
+        <button class="bg-brand text-white px-3 py-2 rounded">Ruaj</button>
+      </form>
+    </section>
+  </div>
+
+  <!-- PANEL: Drejtues -->
+  <div id="tab-drejtues" class="tabPanel hidden space-y-6">
+    <!-- Leaderboard -->
+    <section class="bg-white rounded border p-4">
+      <div class="flex items-center justify-between mb-3">
+        <h3 class="font-semibold text-sm">Leaderboard (sot)</h3>
+        <select class="border rounded px-2 py-1 text-sm">
+          <option>Telefonata</option>
+          <option>Takime</option>
+          <option>Oferta</option>
+          <option>Kontrata</option>
+        </select>
+      </div>
+      <ol class="text-sm space-y-1" id="leaderList">
+        <li>1) Erisa — 85 telefonata</li>
+        <li>2) Ardit — 74 telefonata</li>
+        <li>3) Klara — 61 telefonata</li>
+      </ol>
+    </section>
+
+    <!-- Pipeline (mini Kanban) -->
+    <section class="grid sm:grid-cols-3 gap-4 text-sm">
+      <div class="bg-slate-50 rounded border p-3">
+        <p class="font-semibold mb-2">Prospekt</p>
+        <ul class="space-y-1">
+          <li class="bg-white rounded border px-2 py-1">AutoParts Shpk</li>
+          <li class="bg-white rounded border px-2 py-1">Green Hotel</li>
+        </ul>
+      </div>
+      <div class="bg-slate-50 rounded border p-3">
+        <p class="font-semibold mb-2">Në negociata</p>
+        <ul class="space-y-1">
+          <li class="bg-white rounded border px-2 py-1">Alba Market</li>
+        </ul>
+      </div>
+      <div class="bg-slate-50 rounded border p-3">
+        <p class="font-semibold mb-2">Mbyllur / Fitore</p>
+        <ul class="space-y-1">
+          <li class="bg-white rounded border px-2 py-1">Restorant Tirana</li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- Dokumente kyçe drejtuesish -->
+    <section class="bg-white rounded border p-4">
+      <h3 class="font-semibold text-sm mb-2">Dokumente Kyçe</h3>
+      <ul class="list-disc ml-5 space-y-2">
+        <li><a href="#" class="text-brand hover:underline">Çmimet & Paketat (XLSX)</a></li>
+        <li><a href="#" class="text-brand hover:underline">Politika e Zbritjeve (PDF)</a></li>
+        <li><a href="#" class="text-brand hover:underline">Raporti javor (Template)</a></li>
+      </ul>
+    </section>
+  </div>
+</section>
+
+<!-- IT Helpdesk -->
+<section id="helpdesk" class="bg-white rounded-lg shadow p-4">
+  <h2 class="text-base font-semibold mb-3">IT Helpdesk</h2>
+  <form class="space-y-3" onsubmit="event.preventDefault(); alert('Kërkesa u dërgua (demo).');">
+    <div class="grid sm:grid-cols-2 gap-2">
+      <input type="text" placeholder="Emri & Mbiemri" class="w-full border rounded px-3 py-2 text-sm" required>
+      <input type="email" placeholder="Emaili i punës" class="w-full border rounded px-3 py-2 text-sm" required>
+    </div>
+    <div class="grid sm:grid-cols-2 gap-2">
+      <select class="w-full border rounded px-3 py-2 text-sm">
+        <option>Sistemi CRM</option>
+        <option>VPN / Internet</option>
+        <option>Laptop & Software</option>
+        <option>Tjetër</option>
+      </select>
+      <input type="text" placeholder="Subjekti" class="w-full border rounded px-3 py-2 text-sm" required>
+    </div>
+    <textarea placeholder="Përshkruaj problemin…" class="w-full border rounded px-3 py-2 text-sm"></textarea>
+    <button class="bg-brand text-white px-4 py-2 rounded text-sm">Dërgo</button>
+  </form>
+</section>
+
+<!-- Procedurat -->
+<section id="procedurat" class="bg-white rounded-lg shadow p-4">
+  <h2 class="text-base font-semibold mb-3">Procedurat (SOP)</h2>
+  <div class="grid md:grid-cols-2 gap-4 text-sm">
+    <details class="border rounded p-3"><summary class="font-medium cursor-pointer">SOP 01 • Rrjedha e telefonatës së ftohtë</summary>
+      <ol class="list-decimal ml-5 mt-2 space-y-1">
+        <li>Hapja + arsyeja e thirrjes</li>
+        <li>Kualifikimi i shpejtë (nevojë, buxhet, kohë)</li>
+        <li>Propozim i shkurtër i vlerës</li>
+        <li>Call-to-action: takim / ofertë</li>
+        <li>Shënime në CRM + rikthim</li>
+      </ol>
+    </details>
+    <details class="border rounded p-3"><summary class="font-medium cursor-pointer">SOP 02 • Procesi i ofertimit</summary>
+      <ul class="list-disc ml-5 mt-2 space-y-1">
+        <li>Brief nga klienti (produkt, target, periudha)</li>
+        <li>Zgjedhja e paketës + oraret</li>
+        <li>Hartimi i ofertës (PDF/XLSX)</li>
+        <li>Miratim drejtuesi (nëse kërkohet zbritje)</li>
+        <li>Dërgim + ndjekje 48h</li>
+      </ul>
+    </details>
+    <details class="border rounded p-3"><summary class="font-medium cursor-pointer">SOP 03 • Kontraktimi & faturimi</summary>
+      <p class="mt-2">Përfshin dokumentet standarde, termat e pagesës dhe afatet e dorëzimit të spoteve.</p>
+    </details>
+    <details class="border rounded p-3"><summary class="font-medium cursor-pointer">SOP 04 • Eskalime & VIP SLA</summary>
+      <p class="mt-2">Si të njoftohet menaxhimi, kohët e përgjigjes dhe prioriteti për klientët VIP.</p>
+    </details>
+  </div>
+</section>
+
+<!-- Paketa & Ofertat -->
+<section id="paketat" class="bg-white rounded-lg shadow p-4">
+  <h2 class="text-base font-semibold mb-3">Paketa & Ofertat</h2>
+  <div class="grid md:grid-cols-3 gap-4 text-sm">
+    <div class="border rounded p-4">
+      <h3 class="font-semibold">Starter</h3>
+      <ul class="mt-2 list-disc ml-5">
+        <li>20 spot/javë</li><li>09:00–22:00</li><li>1× post social</li>
+      </ul>
+      <div class="mt-3 font-bold">€1,200</div>
+      <button class="mt-3 bg-brand text-white text-xs px-3 py-1.5 rounded">Gjenero ofertë</button>
+    </div>
+    <div class="border rounded p-4">
+      <h3 class="font-semibold">Growth</h3>
+      <ul class="mt-2 list-disc ml-5">
+        <li>40 spot/javë</li><li>08:00–23:00</li><li>2× post social</li>
+      </ul>
+      <div class="mt-3 font-bold">€2,200</div>
+      <button class="mt-3 bg-brand text-white text-xs px-3 py-1.5 rounded">Gjenero ofertë</button>
+    </div>
+    <div class="border rounded p-4">
+      <h3 class="font-semibold">Prime</h3>
+      <ul class="mt-2 list-disc ml-5">
+        <li>70 spot/javë</li><li>07:00–24:00</li><li>3× post social + intervistë</li>
+      </ul>
+      <div class="mt-3 font-bold">€3,900</div>
+      <button class="mt-3 bg-brand text-white text-xs px-3 py-1.5 rounded">Gjenero ofertë</button>
+    </div>
+  </div>
+</section>
+
+<!-- Klientë VIP -->
+<section id="vip" class="bg-white rounded-lg shadow p-4">
+  <h2 class="text-base font-semibold mb-3">Klientë VIP</h2>
+  <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-2">
+    <input id="vipSearch" type="search" placeholder="Kërko VIP…" class="border rounded px-3 py-2 text-sm w-full sm:w-64">
+    <div class="text-xs text-slate-500">SLA: përgjigje ≤ 2h • prioritet i lartë në planifikim</div>
+  </div>
+  <div class="overflow-x-auto">
+    <table class="min-w-full text-sm border" id="vipTable">
+      <thead class="bg-slate-100">
+        <tr>
+          <th class="p-2 text-left">Klienti</th>
+          <th class="p-2 text-left">Account Manager</th>
+          <th class="p-2 text-left">Shpenzim (30d)</th>
+          <th class="p-2 text-left">Kontrata</th>
+          <th class="p-2 text-left">Rikthim</th>
+          <th class="p-2 text-left">Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr class="border-t">
+          <td>Green Hotel</td>
+          <td>Erisa</td>
+          <td>€7,500</td>
+          <td>06/2025–09/2025</td>
+          <td>2025-08-25</td>
+          <td><span class="text-green-600">Aktiv</span></td>
+        </tr>
+        <tr class="border-t">
+          <td>AutoParts Shpk</td>
+          <td>Ardit</td>
+          <td>€5,200</td>
+          <td>07/2025–10/2025</td>
+          <td>2025-09-01</td>
+          <td><span class="text-yellow-600">Rinegocim</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<!-- Materiale Marketingu / Bibliotekë -->
+<section id="materiale" class="bg-white rounded-lg shadow p-4">
+  <h2 class="text-base font-semibold mb-3">Materiale Marketingu</h2>
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 text-sm">
+    <a class="border rounded p-3 hover:border-brand" href="#">Deck prezantimi (PPTX)</a>
+    <a class="border rounded p-3 hover:border-brand" href="#">Case Studies (PDF)</a>
+    <a class="border rounded p-3 hover:border-brand" href="#">Udhezues i brandit (PDF)</a>
+    <a class="border rounded p-3 hover:border-brand" href="#">Model ofertash (XLSX)</a>
+    <a class="border rounded p-3 hover:border-brand" href="#">Brief për spotin (DOCX)</a>
+    <a class="border rounded p-3 hover:border-brand" href="#">Logo & asete (ZIP)</a>
+  </div>
+</section>
+
+  </main> <footer class="p-4 bg-slate-100 text-center text-xs text-slate-500">
+    © Euronews Albania — Intranet për Telesales & Terren
+  </footer>
+<script>
+  // Tabs
+  const tabBtns = document.querySelectorAll('.tabBtn');
+  const panels = {
+    telesales: document.getElementById('tab-telesales'),
+    terren: document.getElementById('tab-terren'),
+    drejtues: document.getElementById('tab-drejtues')
+  };
+  tabBtns.forEach(btn => btn.addEventListener('click', () => {
+    tabBtns.forEach(b => b.classList.remove('bg-brand','text-white'));
+    btn.classList.add('bg-brand','text-white');
+    Object.values(panels).forEach(p => p.classList.add('hidden'));
+    const key = btn.dataset.tab;
+    panels[key]?.classList.remove('hidden');
+  }));// Kërkimi në tabelën e bizneseve const searchBiz = document.getElementById('searchBiz'); const bizTable = document.getElementById('bizTable'); if (searchBiz && bizTable) { searchBiz.addEventListener('input', () => { const q = searchBiz.value.toLowerCase(); bizTable.querySelectorAll('tbody tr').forEach(tr => { tr.style.display = tr.innerText.toLowerCase().includes(q) ? '' : 'none'; }); }); }
+
+// Quick KPI demo counters let calls = 0, meets = 0, quotes = 0; document.querySelectorAll('.quickBtn').forEach(btn => btn.addEventListener('click', (e)=>{ const t = e.target.textContent.trim(); calls++; if (t === 'Takim') meets++; if (t === 'Oferta') quotes++; document.getElementById('kpiCalls').textContent = calls; document.getElementById('kpiMeetings').textContent = meets; document.getElementById('kpiQuotes').textContent = quotes; })); </script>
+
+<script>
+  // Tabs
+  const tabBtns = document.querySelectorAll('.tabBtn');
+  const panels = {
+    telesales: document.getElementById('tab-telesales'),
+    terren: document.getElementById('tab-terren'),
+    drejtues: document.getElementById('tab-drejtues')
+  };
+  tabBtns.forEach(btn => btn.addEventListener('click', () => {
+    tabBtns.forEach(b => b.classList.remove('bg-brand','text-white'));
+    btn.classList.add('bg-brand','text-white');
+    Object.values(panels).forEach(p => p.classList.add('hidden'));
+    const key = btn.dataset.tab;
+    panels[key]?.classList.remove('hidden');
+    document.getElementById('roleTabs').scrollIntoView({behavior:'smooth'});
+  }));
+
+  // Kërkimi në tabelën e bizneseve
+  const searchBiz = document.getElementById('searchBiz');
+  const bizTable = document.getElementById('bizTable');
+  if (searchBiz && bizTable) {
+    searchBiz.addEventListener('input', () => {
+      const q = searchBiz.value.toLowerCase();
+      bizTable.querySelectorAll('tbody tr').forEach(tr => {
+        tr.style.display = tr.innerText.toLowerCase().includes(q) ? '' : 'none';
+      });
+    });
+  }
+
+  // Quick KPI demo counters (Telesales)
+  let calls = 0, meets = 0, quotes = 0;
+  document.querySelectorAll('.quickBtn').forEach(btn => btn.addEventListener('click', (e)=>{
+    const t = e.target.textContent.trim();
+    calls++;
+    if (t === 'Takim') meets++;
+    if (t === 'Oferta') quotes++;
+    document.getElementById('kpiCalls').textContent = calls;
+    document.getElementById('kpiMeetings').textContent = meets;
+    document.getElementById('kpiQuotes').textContent = quotes;
+  }));
+
+  // Kërkim VIP
+  const vipSearch = document.getElementById('vipSearch');
+  const vipTable = document.getElementById('vipTable');
+  if (vipSearch && vipTable) {
+    vipSearch.addEventListener('input', () => {
+      const q = vipSearch.value.toLowerCase();
+      vipTable.querySelectorAll('tbody tr').forEach(tr => {
+        tr.style.display = tr.innerText.toLowerCase().includes(q) ? '' : 'none';
+      });
+    });
+  }
+</script></body>
+</html>

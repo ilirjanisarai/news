@@ -1,0 +1,26 @@
+[
+  { 
+    "id": 1, 
+    "title": "Objektiv ditor", 
+    "body": "80 telefonata / 8 takime / 3 oferta", 
+    "ts": 1734691200000 
+  },
+  { 
+    "id": 2, 
+    "title": "Trajnim CRM", 
+    "body": "E premte, ora 10:00 — salla 3", 
+    "ts": 1734604800000 
+  },
+  { 
+    "id": 3, 
+    "title": "Takim me ekipin", 
+    "body": "Mbledhje e shkurtër të hënën në orën 09:00 për ecurinë javore.", 
+    "ts": 1734528400000 
+  }
+  { 
+    "id": 4, 
+    "title": "Takim me ekipin", 
+    "body": "Mbledhje e shkurtër të enjten në orën 09:00 për targetin mujor.", 
+    "ts": 1734528400000 
+  }
+]

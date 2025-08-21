@@ -1,0 +1,130 @@
+<!DOCTYPE html><html lang="sq" xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta charset="UTF-8">
+  <title>Euronews Albania Intranet</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/alpinejs" defer></script>
+  <style>
+    [x-cloak]{display:none!important}
+    .nav-item{display:flex;align-items:center;gap:.5rem;padding:.75rem 1rem;color:#334155;font-weight:500;border-left:3px solid transparent;cursor:pointer;transition:all .2s ease}
+    .nav-item:hover{background:#F1F5F9}
+    .nav-item.active{border-left-color:#0B5ED7;background:#E0F2FE;color:#0B5ED7;font-weight:600}
+    .sub-item{padding:.5rem 1.5rem;font-size:.875rem;color:#475569;cursor:pointer;transition:all .2s ease;display:block}
+    .sub-item:hover{background:#F8FAFC;color:#0B5ED7}
+    .sub-item.active{background:#DBEAFE;color:#1E40AF;font-weight:600}
+  </style>
+</head>
+<body class="bg-slate-100 flex flex-col h-screen" x-data="appData()">
+  <!-- Header -->
+  <header class="bg-gradient-to-r from-[#0B5ED7] to-[#00B6FF] text-white p-4 flex items-center justify-between shadow">
+    <div class="flex items-center gap-3">
+      <img src="euronews.png" alt="Euronews Logo" class="h-8">
+      <h1 class="text-lg font-bold">Intranet Euronews Albania</h1>
+    </div>
+    <div class="text-sm opacity-90">Mirësevini</div>
+  </header> <div class="flex flex-1 overflow-hidden">
+    <!-- Sidebar -->
+    <div class="w-64 bg-white border-r border-slate-200 flex flex-col overflow-y-auto">
+      <div class="p-4 border-b border-slate-200">
+        <h2 class="text-xl font-bold text-slate-800">Navigimi</h2>
+      </div>
+      <nav class="flex-1">
+        <div @click="toggle('njoftime')" :class="navCls('njoftime')" class="nav-item">📢 Njoftime</div><div @click="toggle('skripte')" :class="navCls('skripte')" class="nav-item">📑 Skripte</div>
+    <template x-if="open.skripte">
+      <div>
+        <a href="pages/skripte-familjar.html" target="viewerFrame" class="sub-item">Internet Familjar</a>
+        <a href="pages/skripte-biznes.html" target="viewerFrame" class="sub-item">Internet Biznes</a>
+        <a href="pages/skripte-tv.html" target="viewerFrame" class="sub-item">Reklama TV</a>
+      </div>
+    </template>
+
+    <div @click="toggle('procedura')" :class="navCls('procedura')" class="nav-item">⚙️ Procedurat</div>
+    <template x-if="open.procedura">
+      <div>
+        <a href="pages/procedura-telefonate.html" target="viewerFrame" class="sub-item">Procesi i Telefonatës</a>
+        <a href="pages/procedura-ofertim.html" target="viewerFrame" class="sub-item">Ofertimi & Kontraktimi</a>
+        <a href="pages/procedura-terren.html" target="viewerFrame" class="sub-item">Takimet në Terren</a>
+      </div>
+    </template>
+
+    <div @click="toggle('paketa')" :class="navCls('paketa')" class="nav-item">🎁 Paketa & Ofertat</div>
+    <template x-if="open.paketa">
+      <div>
+        <a href="pages/paketa-starter.html" target="viewerFrame" class="sub-item">Starter</a>
+        <a href="pages/paketa-growth.html" target="viewerFrame" class="sub-item">Growth</a>
+        <a href="pages/paketa-prime.html" target="viewerFrame" class="sub-item">Prime</a>
+      </div>
+    </template>
+
+    <a href="pages/vip.html" target="viewerFrame" :class="navCls('vip')" class="nav-item">⭐ Klientë VIP</a>
+
+    <div @click="toggle('materiale')" :class="navCls('materiale')" class="nav-item">📂 Materiale</div>
+    <template x-if="open.materiale">
+      <div>
+        <a href="pages/materiale-deck.html" target="viewerFrame" class="sub-item">Deck Prezantimi</a>
+        <a href="pages/materiale-case.html" target="viewerFrame" class="sub-item">Case Studies</a>
+        <a href="pages/materiale-logo.html" target="viewerFrame" class="sub-item">Logo & Asete</a>
+      </div>
+    </template>
+
+    <a href="pages/helpdesk.html" target="viewerFrame" :class="navCls('helpdesk')" class="nav-item">💻 IT Helpdesk</a>
+  </nav>
+</div>
+
+<!-- Viewer -->
+<div class="flex-1 overflow-y-auto bg-slate-50">
+  <iframe name="viewerFrame" class="w-full h-full border-0"></iframe>
+</div>
+
+<!-- Newsroom / Njoftime modul djathtas -->
+<div class="w-64 bg-white border-l border-slate-200 flex flex-col overflow-y-auto" x-data="newsroom()">
+  <div class="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+    <h2 class="text-sm font-semibold text-slate-800">📰 Newsroom</h2>
+    <div class="flex items-center gap-2">
+      <button class="text-xs px-2 py-1 border rounded" @click="refresh()">🔄</button>
+    </div>
+  </div>
+  <div class="flex-1 p-4 space-y-3 overflow-y-auto">
+    <template x-for="n in items" :key="n.id">
+      <div class="p-3 bg-slate-100 rounded-lg border border-slate-200">
+        <h3 class="font-semibold text-slate-700" x-text="n.title"></h3>
+        <p class="text-sm text-slate-600 mt-1" x-text="n.body"></p>
+        <p class="text-xs text-slate-400 mt-1" x-text="fmt(n.ts)"></p>
+      </div>
+    </template>
+    <template x-if="loading"><p class="text-xs text-slate-500">Duke ngarkuar…</p></template>
+    <template x-if="error"><p class="text-xs text-red-500" x-text="error"></p></template>
+  </div>
+</div>
+
+  </div> <script>
+    function appData(){
+      return {
+        page:null,
+        sub:null,
+        open:{skripte:false,procedura:false,paketa:false,materiale:false},
+        navCls(pg){ return this.page===pg?'nav-item active':'nav-item' },
+        toggle(key){ this.open[key]=!this.open[key]; }
+      }
+    }
+    function newsroom(){
+      return {
+        items: [],
+        loading: false,
+        error: '',
+        async refresh(){
+          this.loading = true; this.error='';
+          try{
+            const r = await fetch('announcements.json', {cache:'no-store'});
+            this.items = r.ok ? await r.json() : [];
+          }catch(e){
+            this.items = []; this.error = "S'u ngarkuan njoftimet.";
+          }
+          this.loading = false;
+        },
+        fmt(ts){ try{ return new Date(ts).toLocaleString('sq-AL'); }catch{ return '' } },
+        init(){ this.refresh(); }
+      }
+    }
+  </script></body>
+</html>

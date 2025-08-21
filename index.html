@@ -1,0 +1,159 @@
+<!DOCTYPE html><html lang="sq" xmlns="http://www.w3.org/1999/xhtml"> 
+<head>
+  <meta charset="UTF-8">
+  <title>Euronews Albania Intranet</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="icon" href="logo.png" />
+  <script src="https://unpkg.com/alpinejs" defer></script>
+  <style>
+    [x-cloak]{display:none!important}
+    .nav-item{
+      display:flex;align-items:center;gap:.6rem;
+      padding:.8rem 1rem;margin:.25rem .5rem;border-radius:.75rem;
+      color:#334155;font-weight:600;border-left:4px solid transparent;
+      cursor:pointer;transition:all .18s ease
+    }
+    .nav-item:hover{background:#F1F5F9}
+    .nav-item.active{
+      border-left-color:#0B5ED7;background:#E8F1FF;color:#0B5ED7;
+      box-shadow:0 1px 0 rgba(11,94,215,.08)
+    }
+    .sub-item{
+      display:block;margin:.15rem .5rem;padding:.55rem 1.25rem;border-radius:.6rem;
+      font-size:.9rem;color:#475569;transition:all .18s ease
+    }
+    .sub-item:hover{background:#F8FAFC;color:#0B5ED7}
+    .sub-item.active{background:#DBEAFE;color:#1E40AF;font-weight:600}
+  </style>
+</head>
+<body class="bg-slate-100 flex flex-col h-screen" x-data="appData()">
+  <!-- Header -->
+  <header class="bg-gradient-to-r from-[#0B5ED7] to-[#00B6FF] text-white p-4 flex items-center justify-between shadow">
+    <div class="flex items-center gap-3 cursor-pointer select-none" @click="resetApp()" title="Kthehu në faqen kryesore">
+      <img src="euronews.png" alt="Euronews Logo" class="h-8">
+      <h1 class="text-lg font-bold">Intranet Euronews Albania</h1>
+    </div>
+    <div class="text-sm opacity-90">Mirësevini</div>
+  </header> <div class="flex flex-1 overflow-hidden">
+    <!-- Sidebar -->
+    <div class="w-64 bg-white border-r border-slate-200 flex flex-col overflow-y-auto">
+      <div class="p-4 border-b border-slate-200">
+        <h2 class="text-xl font-bold text-slate-800">Navigimi</h2>
+      </div>
+      <nav class="flex-1">
+        <a href="#" @click.prevent.stop="goHome()" :class="navCls('home')" class="nav-item">🏠 Faqja kryesore</a><!-- Skriptet -->
+    <div>
+      <div @click="toggle('skripte')" :class="navCls('skripte')" class="nav-item">📜 Skriptet</div>
+      <div x-show="open.skripte">
+        <a href="#" @click.prevent="openLink('manual_telesales_perditesuar.html')" :class="linkCls('manual_telesales_perditesuar.html')" class="sub-item">Manual Telesales</a>
+        <a href="#" @click.prevent="openLink('skripte_kliente_skeptike.html')" :class="linkCls('skripte_kliente_skeptike.html')" class="sub-item">Kliente Skeptike</a>
+        <a href="#" @click.prevent="openLink('pages/skript-reklama.html')" :class="linkCls('pages/skript-reklama.html')" class="sub-item">Reklama TV</a>
+      </div>
+    </div>
+
+    <!-- Procedurat -->
+    <div>
+      <div @click="toggle('procedura')" :class="navCls('procedura')" class="nav-item">⚙️ Procedurat</div>
+      <div x-show="open.procedura">
+        <a href="#" @click.prevent="openLink('detyrat_agjent_telesales (2).html')" :class="linkCls('detyrat_agjent_telesales (2).html')" class="sub-item">Pune të përditshme</a>
+        <a href="#" @click.prevent="openLink('raportimet_telesales_euronews (1).html')" :class="linkCls('raportimet_telesales_euronews (1).html')" class="sub-item">Raportime</a>
+        <a href="#" @click.prevent="openLink('manaxhimi-i-klienteve.html')" :class="linkCls('manaxhimi-i-klienteve.html')" class="sub-item">Menaxhimi klientëve</a>
+      </div>
+    </div>
+
+    <!-- Paketat -->
+    <div>
+      <div @click="toggle('paketa')" :class="navCls('paketa')" class="nav-item">💼 Paketat & Ofertat</div>
+      <div x-show="open.paketa">
+        <a href="#" @click.prevent="openLink('pages/paketa-standard.html')" :class="linkCls('pages/paketa-standard.html')" class="sub-item">Standard</a>
+        <a href="#" @click.prevent="openLink('pages/paketa-premium.html')" :class="linkCls('pages/paketa-premium.html')" class="sub-item">Premium</a>
+        <a href="#" @click.prevent="openLink('pages/paketa-vip.html')" :class="linkCls('pages/paketa-vip.html')" class="sub-item">VIP</a>
+      </div>
+    </div>
+
+    <!-- Materiale -->
+    <div>
+      <div @click="toggle('materiale')" :class="navCls('materiale')" class="nav-item">📂 Materiale</div>
+      <div x-show="open.materiale">
+        <a href="#" @click.prevent="openLink('pages/materiale-trajnime.html')" :class="linkCls('pages/materiale-trajnime.html')" class="sub-item">Trajnime</a>
+        <a href="#" @click.prevent="openLink('pages/materiale-marketing.html')" :class="linkCls('pages/materiale-marketing.html')" class="sub-item">Marketing</a>
+        <a href="#" @click.prevent="openLink('pages/materiale-dokumente.html')" :class="linkCls('pages/materiale-dokumente.html')" class="sub-item">Dokumente</a>
+      </div>
+    </div>
+
+  </nav>
+</div>
+
+<!-- Viewer -->
+<div class="flex-1 overflow-y-auto bg-slate-50 p-6">
+  <!-- Iframe viewer -->
+  <iframe name="viewerFrame" class="w-full h-[calc(100vh-8rem)] border-0 rounded-xl" :src="active"></iframe>
+</div>
+
+<!-- Newsroom / Njoftime modul djathtas -->
+<div class="w-64 bg-white border-l border-slate-200 flex flex-col overflow-y-auto" x-data="newsroom()" x-init="refresh()">
+  <div class="p-4 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
+    <h2 class="text-sm font-semibold text-slate-800">📰 Newsroom</h2>
+    <div class="flex items-center gap-2">
+      <button class="text-xs px-2 py-1 border rounded" @click="refresh()">🔄</button>
+    </div>
+  </div>
+  <div class="flex-1 p-4 space-y-3 overflow-y-auto">
+    <template x-for="n in items" :key="n.id">
+      <div class="p-3 bg-slate-100 rounded-lg border border-slate-200">
+        <h3 class="font-semibold text-slate-700" x-text="n.title"></h3>
+        <p class="text-sm text-slate-600 mt-1" x-text="n.body"></p>
+        <p class="text-xs text-slate-400 mt-1" x-text="fmt(n.ts)"></p>
+      </div>
+    </template>
+    <template x-if="loading"><p class="text-xs text-slate-500">Duke ngarkuar…</p></template>
+    <template x-if="error"><p class="text-xs text-red-500" x-text="error"></p></template>
+  </div>
+</div>
+
+  </div> <script>
+    function appData(){
+      return {
+        page:null,
+        sub:null,
+        active:'njoftime.html',
+        open:{skripte:false,procedura:false,paketa:false,materiale:false},
+        navCls(pg){ return this.page===pg?'nav-item active':'nav-item' },
+        linkCls(path){ return (this.active===path)?'sub-item active':'sub-item' },
+        toggle(key){ this.page=key; this.open[key]=!this.open[key]; },
+        openLink(path){ this.active=path; const f=window.frames['viewerFrame']; if(f) f.location.replace(path); },
+        goHome(){ this.active='njoftime.html'; this.page=null; try{ const f=window.frames['viewerFrame']; if(f) f.location.replace(this.active); }catch(e){} },
+        resetApp(){
+          // mbyll të gjitha nënopsionet, kalo në faqen e parë dhe shko sipër
+          this.open = {skripte:false,procedura:false,paketa:false,materiale:false};
+          this.goHome();
+          window.scrollTo({top:0, behavior:'smooth'});
+        }
+      }
+    }
+    function newsroom(){
+      return {
+        items: [],
+        loading: false,
+        error: '',
+        autoRefreshMs: 180000,
+        timer: null,
+        async refresh(){
+          this.loading = true; this.error='';
+          if(location.protocol==='file:'){
+            this.items=[]; this.error='Hape me një server lokal (p.sh. python -m http.server).'; this.loading=false; return;
+          }
+          try{
+            const r = await fetch('./announcements.json', {cache:'no-store'});
+            if(!r.ok) throw new Error('HTTP '+r.status);
+            this.items = await r.json();
+          }catch(e){ this.items=[]; this.error="S'u ngarkuan njoftimet."; }
+          this.loading = false;
+        },
+        fmt(ts){ try{ return new Date(ts).toLocaleString('sq-AL'); }catch{ return '' } },
+        init(){ this.refresh(); this.timer=setInterval(()=>this.refresh(), this.autoRefreshMs); },
+        destroy(){ if(this.timer) clearInterval(this.timer); }
+      }
+    }
+  </script></body>
+</html>
