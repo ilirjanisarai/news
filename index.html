@@ -3,6 +3,7 @@
   <meta charset="UTF-8">
   <title>Euronews Albania Intranet</title>
   <script src="https://cdn.tailwindcss.com"></script>
+   <link rel="icon" href="logo.png" />
   <script src="https://unpkg.com/alpinejs" defer></script>
   <style>
     [x-cloak]{display:none!important}
@@ -29,7 +30,7 @@
   <!-- Header -->
   <header class="bg-gradient-to-r from-[#0B5ED7] to-[#00B6FF] text-white p-4 flex items-center justify-between shadow">
     <div class="flex items-center gap-3 cursor-pointer select-none" @click="resetApp()" title="Kthehu në faqen kryesore">
-      <img src="https://upload.wikimedia.org/wikipedia/commons/7/77/Euronews_logo_2016.svg" alt="Euronews Logo" class="h-8">
+      <img src="euronews.png" alt="Euronews Logo" class="h-8">
       <h1 class="text-lg font-bold">Intranet Euronews Albania</h1>
     </div>
     <div class="text-sm opacity-90">Mirësevini</div>
@@ -115,13 +116,13 @@
       return {
         page:null,
         sub:null,
-        active:'pages/njoftime.html',
+        active:'njoftime.html',
         open:{skripte:false,procedura:false,paketa:false,materiale:false},
         navCls(pg){ return this.page===pg?'nav-item active':'nav-item' },
         linkCls(path){ return (this.active===path)?'sub-item active':'sub-item' },
         toggle(key){ this.page=key; this.open[key]=!this.open[key]; },
         openLink(path){ this.active=path; const f=window.frames['viewerFrame']; if(f) f.location.replace(path); },
-        goHome(){ this.active='pages/njoftime.html'; this.page=null; try{ const f=window.frames['viewerFrame']; if(f) f.location.replace(this.active); }catch(e){} },
+        goHome(){ this.active='njoftime.html'; this.page=null; try{ const f=window.frames['viewerFrame']; if(f) f.location.replace(this.active); }catch(e){} },
         resetApp(){
           // mbyll të gjitha nënopsionet, kalo në faqen e parë dhe shko sipër
           this.open = {skripte:false,procedura:false,paketa:false,materiale:false};
@@ -159,3 +160,4 @@
     }
   </script></body>
 </html>
+
