@@ -47,8 +47,22 @@
   .muted{color:var(--muted); font-size:12px}
   .tag{display:inline-block; padding:2px 6px; border-radius:999px; border:1px solid var(--line); font-size:11px; background:#f1f5f9}
   .due{color:#fff; background:#ef4444; padding:2px 6px; border-radius:8px; font-weight:800; font-size:11px}
-  .modal{position:fixed; inset:0; background:rgba(0,0,0,.55); display:none; align-items:center; justify-content:center; padding:18px; z-index:100}
-  .panel{max-width:760px; width:100%; background:var(--surface); border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow); padding:16px}
+  .modal{
+    position:fixed; inset:0; background:rgba(0,0,0,.55);
+    display:none; align-items:center; justify-content:center;
+    padding:18px; z-index:100; overflow:auto; /* lejo scroll në overlay */
+  }
+  .panel{
+    max-width:760px; width:100%;
+    background:var(--surface); border:1px solid var(--line);
+    border-radius:16px; box-shadow:var(--shadow); padding:16px;
+    max-height:90vh; overflow:auto; display:flex; flex-direction:column;
+  }
+  .panel .top{
+    position:sticky; top:0; background:var(--surface); z-index:1;
+    padding-bottom:8px; margin-bottom:8px; border-bottom:1px solid var(--line);
+  }
+  #m_timeline{ max-height:50vh; overflow:auto; }
   .top{display:flex; align-items:center; justify-content:space-between; gap:8px}
   .flex{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
   .nowrap{white-space:nowrap}
@@ -163,7 +177,7 @@
   <section class="card">
     <div class="top">
       <h2 style="margin:0;font-size:16px">Leads</h2>
-    <div class="flex">
+      <div class="flex">
         <input id="q" placeholder="Kërko (kompania, kontakt, tel, email, NIPT)" oninput="debouncedRender()">
         <select id="flt_source" onchange="render()">
           <option value="">Burimi (gjithë)</option>
@@ -315,7 +329,8 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ===== STATE ===== */
 let LEADS = [];
-let COMMENTS = {};
+let COMMENTS = {};       // cache i komenteve për lead-in e hapur
+let COMMENT_COUNTS = {}; // lead_id -> numër komentesh (nga view)
 const EL = sel => document.querySelector(sel);
 const ESC = s => (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;', "'":'&#39;' }[m]));
 
@@ -324,18 +339,22 @@ function todayStr(d=new Date()){ const z=n=>String(n).padStart(2,'0'); return d.
 function addDays(date,days){ const d=new Date(date); d.setDate(d.getDate()+days); return d; }
 
 /* ===== DB ===== */
-async function fetchLeads(){
-  EL('#loading').style.display='inline-flex';
+async function fetchLeadsOnly(){
   const { data, error } = await sb
     .from('leads')
     .select('id,created_at,company,contact,phone,email,nipt,source,call_status,answer_outcome,next_follow_up,meeting_status,meeting_date,field_agent')
     .order('created_at',{ascending:false})
-    .limit(300); // mban UI të lehtë
-  EL('#loading').style.display='none';
+    .limit(300);
   if(error){ console.error(error); alert('Nuk u lexuan lead-et nga DB.'); return []; }
   return data || [];
 }
-
+async function fetchCommentCounts(){
+  const { data, error } = await sb
+    .from('lead_comment_counts')
+    .select('lead_id, comments');
+  if(error){ console.error(error); return []; }
+  return data || [];
+}
 async function fetchComments(lead_id){
   const { data, error } = await sb
     .from('lead_updates')
@@ -345,22 +364,19 @@ async function fetchComments(lead_id){
   if(error){ console.warn(error); return []; }
   return data || [];
 }
-
 async function insertUpdate(lead_id, payload){
   const row = Object.assign({ lead_id, kind:'update' }, payload);
   const { error } = await sb.from('lead_updates').insert([row]);
   if(error){ console.warn(error); alert('Nuk u ruajt përditësimi (lead_updates).'); }
 }
-
 async function insertComment(lead_id, text){
   const { error } = await sb.from('lead_updates').insert([{ lead_id, kind:'comment', comment:text }]);
   if(error){ console.warn(error); alert('Nuk u ruajt komenti (lead_updates).'); }
 }
-
 async function updateLeadFields(id, fields){
-  // Do të funksionojë vetëm nëse aktivizon politikën UPDATE (opsionale) në SQL
+  // FUNKSIONON vetëm nëse ke aktivizuar policy UPDATE (opsionale) në SQL
   const { error } = await sb.from('leads').update(fields).eq('id', id);
-  if(error){ console.warn(error); alert('UPDATE dështoi (RLS). Mund ta lësh vetëm me log në lead_updates.'); }
+  if(error){ console.warn(error); /* alert opsional */ }
 }
 
 /* ===== RENDER ===== */
@@ -402,7 +418,7 @@ function render(){
     return passQ && passS && passC && passR && passM;
   });
 
-  if(sort==='created_desc') arr.sort((a,b)=> (b.created_at||'').localeCompare(a.created_at||''));
+  if(sort==='created_desc') arr.sort((a,b)=> (b.created_at||'').localeCompare(a.created_at||'')); 
   else if(sort==='created_asc') arr.sort((a,b)=> (a.created_at||'').localeCompare(b.created_at||'')); 
   else if(sort==='company_asc') arr.sort((a,b)=> (a.company||'').localeCompare(b.company||'')); 
   else if(sort==='company_desc') arr.sort((a,b)=> (b.company||'').localeCompare(a.company||'')); 
@@ -412,7 +428,7 @@ function render(){
 
   EL('#rows').innerHTML = arr.map(x=>{
     const due = x.next_follow_up && x.next_follow_up <= todayStr() ? `<span class="due">Due</span>` : '';
-    const commentsCount = (COMMENTS[x.id]?.length) ?? 0;
+    const commentsCount = COMMENT_COUNTS[x.id] ?? 0;
     return `<tr>
       <td><strong>${ESC(x.company)}</strong><br><span class="muted">${ESC(x.created_at||'')}</span></td>
       <td>${ESC(x.contact||'')}<br><span class="muted">${ESC(x.phone||'')} ${x.email? ' · '+ESC(x.email):''}</span></td>
@@ -456,16 +472,11 @@ async function addLead(){
   const meeting_date = EL('#f_meeting_date').value || null;
   const primeNote = EL('#f_notes').value.trim();
 
-  if(!company || !phone){
-    alert('Kompania dhe telefoni janë të detyrueshëm.');
-    return;
-  }
+  if(!company || !phone){ alert('Kompania dhe telefoni janë të detyrueshëm.'); return; }
 
   const id = 'L'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4);
   let nextFU = null;
-  if(answer_outcome==='Do ta eskaloj' || answer_outcome==='Do të mendohet'){
-    nextFU = todayStr(addDays(new Date(),3));
-  }
+  if(answer_outcome==='Do ta eskaloj' || answer_outcome==='Do të mendohet'){ nextFU = todayStr(addDays(new Date(),3)); }
   const meeting_status = meeting_date ? 'Pending' : null;
 
   EL('#loading').style.display='inline-flex';
@@ -502,10 +513,11 @@ async function addLead(){
     call_status, answer_outcome, next_follow_up: nextFU,
     meeting_status, meeting_date: meeting_date || null, field_agent: field_agent || null
   });
+  COMMENT_COUNTS[id] = (primeNote ? 1 : 0); // një log 'create' + koment prime nëse ekziston
   render();
   clearForm();
 
-  /* Rifresko nga DB për konsistencë */
+  /* Rifresko nga DB për konsistencë + numërime reale */
   await refreshLeads();
   EL('#loading').style.display='none';
 }
@@ -527,7 +539,9 @@ async function openModal(id){
   EL('#m_comment').value = '';
 
   COMMENTS[id] = await fetchComments(id);
+  COMMENT_COUNTS[id] = (COMMENTS[id] || []).length; // sinkro numrin në listë
   renderTimeline(id);
+  render(); // përditëso kolonën 'Komente' në tabelë
 
   document.getElementById('modal').style.display='flex';
 }
@@ -552,6 +566,17 @@ function renderTimeline(id){
   document.getElementById('m_timeline').innerHTML = html || `<div class="muted">S’ka komente ende.</div>`;
 }
 function closeModal(){ document.getElementById('modal').style.display='none'; CURRENT_ID=null; }
+
+/* Mbyll modal-in me klik jashtë dhe me ESC */
+document.getElementById('modal').addEventListener('click', (e)=>{
+  if(e.target.id === 'modal') closeModal();
+});
+document.addEventListener('keydown', (e)=>{
+  if(e.key === 'Escape'){
+    const modal = document.getElementById('modal');
+    if(modal.style.display === 'flex') closeModal();
+  }
+});
 
 /* ===== SAVE MODAL ===== */
 async function saveModal(){
@@ -579,7 +604,10 @@ async function saveModal(){
     email: email,
     comment: comment || null
   });
-  if(comment){ await insertComment(x.id, comment); }
+  if(comment){
+    await insertComment(x.id, comment);
+    COMMENT_COUNTS[x.id] = (COMMENT_COUNTS[x.id] || 0) + 1; // rrit lokalisht numrin e komenteve
+  }
 
   /* 2) (Opsionale) UPDATE rreshti – vetëm nëse ke aktivizuar policy UPDATE */
   await updateLeadFields(x.id, {
@@ -591,7 +619,8 @@ async function saveModal(){
     email: email
   });
 
-  await refreshLeads();
+  /* 3) Rifresko UI */
+  await refreshLeads();                  // merr edhe numërimet reale nga view
   COMMENTS[x.id] = await fetchComments(x.id);
   renderTimeline(x.id);
   EL('#loading').style.display='none';
@@ -725,7 +754,14 @@ function parseCSVLine(line){
 
 /* ===== DATA FLOW ===== */
 async function refreshLeads(){
-  LEADS = await fetchLeads();
+  EL('#loading').style.display='inline-flex';
+  const [leads, counts] = await Promise.all([fetchLeadsOnly(), fetchCommentCounts()]);
+  EL('#loading').style.display='none';
+
+  LEADS = leads;
+  COMMENT_COUNTS = {};
+  (counts||[]).forEach(r => { COMMENT_COUNTS[r.lead_id] = r.comments || 0; });
+
   render();
 }
 
