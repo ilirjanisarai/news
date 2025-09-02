@@ -63,7 +63,7 @@
   <div class="wrap" style="display:flex; align-items:center; justify-content:space-between; gap:12px">
     <div>
       <h1><i class="fa-solid fa-address-book"></i> ADC · Mini CRM (Leads)</h1>
-      <div class="muted">Gjenerim & ndjekje e lead-eve (telefonata, follow-ups, takime, komente) · Ruajtje në Google Sheets</div>
+      <div class="muted">Gjenerim & ndjekje e lead-eve (telefonata, follow-ups, takime, komente) · Ruajtje në Supabase</div>
     </div>
     <div class="toolbar">
       <button class="btn" onclick="downloadCSV()"><i class="fa-solid fa-file-export"></i> Eksport CSV</button>
@@ -82,7 +82,7 @@
   <section class="card">
     <div class="top">
       <h2 style="margin:0;font-size:16px">Shto lead</h2>
-      <div class="muted">Çdo lead ruhet lokalisht dhe dërgohet edhe në Google Sheets.</div>
+      <div class="muted">Çdo lead ruhet lokalisht dhe dërgohet edhe në Supabase (INSERT-only).</div>
     </div>
     <div class="grid" style="margin-top:10px">
       <div class="row">
@@ -299,9 +299,14 @@
   </div>
 </div>
 
+<!-- Supabase SDK -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
-/* ====== KONFIGURIM BACKEND ====== */
-const SHEETS_ENDPOINT = 'VENDOS_WEB_APP_URL_KETU'; // p.sh. https://script.google.com/macros/s/.../exec
+/* ====== KONFIGURIM SUPABASE ====== */
+const SUPABASE_URL = 'https://cpkyagcuowjvofgcgdwx.supabase.co/';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwa3lhZ2N1b3dqdm9mZ2NnZHd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4MjI3OTksImV4cCI6MjA3MjM5ODc5OX0.NqgKif1QO3vtigZ9eWRc8JuJLCw6JoeRIcqWwzXCIQs';
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ====== Storage & Utils ====== */
 const LS_KEY = 'ADC_MINI_CRM_V1';
@@ -314,33 +319,49 @@ function todayStr(d=new Date()){ const z=n=>String(n).padStart(2,'0'); return d.
 function addDays(date,days){ const d=new Date(date); d.setDate(d.getDate()+days); return d; }
 function htmlEscape(s){ return (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;', "'":'&#39;' }[m])); }
 
-/* ====== Sheets helpers ====== */
-async function logCreateToSheets(x){
-  if(!SHEETS_ENDPOINT.startsWith('https')) return;
-  const payload = {
-    action:'create_lead',
-    id:x.id, created_at:x.created_at, company:x.company, contact:x.contact, phone:x.phone, email:x.email,
-    source:x.source, call_status:x.call_status, answer_outcome:x.answer_outcome,
-    next_follow_up:x.next_follow_up, meeting_status:x.meeting_status, meeting_date:x.meeting_date,
-    field_agent:x.field_agent, comments_count:(x.comments||[]).length,
-    last_comment:(x.comments||[]).slice(-1)[0]?.text || ''
-  };
+/* ====== Supabase helpers (INSERT-only) ====== */
+async function logCreateToDB(x){
   try{
-    await fetch(SHEETS_ENDPOINT, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+    await sb.from('leads').insert([{
+      id: x.id,
+      created_at: x.created_at,
+      company: x.company,
+      contact: x.contact,
+      phone: x.phone,
+      email: x.email,
+      source: x.source,
+      call_status: x.call_status,
+      answer_outcome: x.answer_outcome,
+      next_follow_up: x.next_follow_up || null,
+      meeting_status: x.meeting_status || null,
+      meeting_date: x.meeting_date || null,
+      field_agent: x.field_agent || null
+    }]);
+    await sb.from('lead_updates').insert([{
+      lead_id: x.id, kind: 'create', comment: (x.comments?.[0]?.text || null)
+    }]);
+  }catch(_){ /* hesht pa prishur UI-n */ }
+}
+
+async function logUpdateToDB(id, data){
+  try{
+    await sb.from('lead_updates').insert([{
+      lead_id: id,
+      kind: 'update',
+      comment: data.comment || null,
+      new_result: data.new_result || null,
+      next_follow_up: data.next_follow_up || null,
+      meeting_status: data.meeting_status || null,
+      meeting_date: data.meeting_date || null,
+      field_agent: data.field_agent || null,
+      email: data.email || null
+    }]);
   }catch(_){}
 }
-async function logUpdateToSheets(id, data){
-  if(!SHEETS_ENDPOINT.startsWith('https')) return;
-  const payload = Object.assign({ action:'update_lead', id }, data);
+
+async function logCommentToDB(id, text){
   try{
-    await fetch(SHEETS_ENDPOINT, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
-  }catch(_){}
-}
-async function logCommentToSheets(id, text){
-  if(!SHEETS_ENDPOINT.startsWith('https')) return;
-  const payload = { action:'add_comment', id, comment:text };
-  try{
-    await fetch(SHEETS_ENDPOINT, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+    await sb.from('lead_updates').insert([{ lead_id:id, kind:'comment', comment:text }]);
   }catch(_){}
 }
 
@@ -357,7 +378,7 @@ function addLead(){
     answer_outcome: document.getElementById('f_answer_outcome').value || "",
     field_agent: document.getElementById('f_field_agent').value.trim(),
     meeting_date: document.getElementById('f_meeting_date').value || "",
-    meeting_status: "", // Pending / Accepted / Refused - Closed
+    meeting_status: "",
     next_follow_up: "",
     comments: [],
     created_at: todayStr()
@@ -379,8 +400,7 @@ function addLead(){
   }
 
   LEADS.unshift(obj); save(); render();
-  // Log në Sheets (fire-and-forget)
-  logCreateToSheets(obj);
+  logCreateToDB(obj); // fire-and-forget
   clearForm();
 }
 
@@ -467,14 +487,14 @@ function quickFollow(id){
   const x = LEADS.find(i=>i.id===id); if(!x) return;
   x.next_follow_up = todayStr(addDays(new Date(),3));
   save(); render();
-  logUpdateToSheets(id, { new_result:x.answer_outcome||'', next_follow_up:x.next_follow_up });
+  logUpdateToDB(id, { new_result:x.answer_outcome||'', next_follow_up:x.next_follow_up });
 }
 
 /* ====== Delete ====== */
 function delLead(id){
   if(!confirm('Fshini këtë lead?')) return;
   LEADS = LEADS.filter(x=>x.id!==id); save(); render();
-  // (opsionale) mund të log-osh edhe fshirjet në Updates nëse do
+  // (INSERT-only: s'logojmë fshirjen në DB për anon)
 }
 
 /* ====== Modal (edit, comments, meeting) ====== */
@@ -532,18 +552,18 @@ function saveModal(){
 
   if(comment){
     x.comments.push({ts:new Date().toISOString(), text:comment});
-    logCommentToSheets(x.id, comment);
+    logCommentToDB(x.id, comment);
   }
 
   save(); render();
-  // log update te Sheets
-  logUpdateToSheets(x.id, {
+  logUpdateToDB(x.id, {
     new_result: x.answer_outcome,
     next_follow_up: x.next_follow_up,
     meeting_status: x.meeting_status,
     meeting_date: x.meeting_date,
     field_agent: x.field_agent,
-    email: x.email
+    email: x.email,
+    comment: comment || null
   });
   openModal(x.id); // rifresko modalin
 }
@@ -573,8 +593,7 @@ ADC`
 
 /* ====== ICS (download) ====== */
 function makeICS({title, description, date, durationMinutes=30}){
-  // date: 'YYYY-MM-DD'
-  const dt = new Date(date+'T09:00:00'); // default 09:00
+  const dt = new Date(date+'T09:00:00');
   const dtEnd = new Date(dt.getTime() + durationMinutes*60000);
   const fmt = d => d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}Z$/,'Z');
   const ics =
@@ -692,7 +711,7 @@ function seedDemo(){
     {company:'Green Market', contact:'Arta M.', phone:'+355 68 222 3333', email:'', source:'Google Maps', call_status:'Not answered', answer_outcome:'', next_follow_up:'', meeting_status:'', meeting_date:'', field_agent:'', comments:[], created_at:now},
     {company:'Balkan Logistics', contact:'Nderim K.', phone:'+355 67 555 6666', email:'sales@bll.al', source:'LinkedIn', call_status:'Answered', answer_outcome:'I interesuar', next_follow_up:'', meeting_status:'Pending', meeting_date: todayStr(addDays(new Date(),2)), field_agent:'Klodian H.', comments:[{ts:new Date().toISOString(), text:'Takim i kërkuar nga klienti, u caktua te marta ora 11:00.'}], created_at:now}
   ];
-  demo.forEach(d=>{ d.id=uid(); LEADS.unshift(d); logCreateToSheets(d); });
+  demo.forEach(d=>{ d.id=uid(); LEADS.unshift(d); logCreateToDB(d); });
   save(); render();
 }
 function clearAll(){
