@@ -163,8 +163,8 @@
   <section class="card">
     <div class="top">
       <h2 style="margin:0;font-size:16px">Leads</h2>
-      <div class="flex">
-        <input id="q" placeholder="Kërko (kompania, kontakt, tel, email, NIPT)" oninput="render()">
+    <div class="flex">
+        <input id="q" placeholder="Kërko (kompania, kontakt, tel, email, NIPT)" oninput="debouncedRender()">
         <select id="flt_source" onchange="render()">
           <option value="">Burimi (gjithë)</option>
           <option>QKB</option>
@@ -314,8 +314,8 @@ const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ===== STATE ===== */
-let LEADS = [];       // vjen nga DB (SELECT)
-let COMMENTS = {};    // cache i komenteve per lead_id: [ ...updates... ]
+let LEADS = [];
+let COMMENTS = {};
 const EL = sel => document.querySelector(sel);
 const ESC = s => (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;', "'":'&#39;' }[m]));
 
@@ -323,98 +323,44 @@ const ESC = s => (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&
 function todayStr(d=new Date()){ const z=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate()); }
 function addDays(date,days){ const d=new Date(date); d.setDate(d.getDate()+days); return d; }
 
-/* ===== DB: LEADS ===== */
+/* ===== DB ===== */
 async function fetchLeads(){
   EL('#loading').style.display='inline-flex';
-  const { data, error } = await sb.from('leads').select('*').order('created_at',{ascending:false});
+  const { data, error } = await sb
+    .from('leads')
+    .select('id,created_at,company,contact,phone,email,nipt,source,call_status,answer_outcome,next_follow_up,meeting_status,meeting_date,field_agent')
+    .order('created_at',{ascending:false})
+    .limit(300); // mban UI të lehtë
   EL('#loading').style.display='none';
   if(error){ console.error(error); alert('Nuk u lexuan lead-et nga DB.'); return []; }
   return data || [];
 }
 
-/* INSERT: vetëm kolonat e "leads" (pa _prime_note!) + log te lead_updates */
-async function addLead(){
-  // MBLIDH NGA FORMA
-  const company = EL('#f_company').value.trim();
-  const contact = EL('#f_contact').value.trim();
-  const phone   = EL('#f_phone').value.trim();
-  const email   = EL('#f_email').value.trim();
-  const nipt    = EL('#f_nipt').value.trim();
-  const source  = EL('#f_source').value;
-  const call_status = EL('#f_call_status').value;
-  const answer_outcome = EL('#f_answer_outcome').value || null;
-  const field_agent = EL('#f_field_agent').value.trim();
-  const meeting_date = EL('#f_meeting_date').value || null;
-  const primeNote = EL('#f_notes').value.trim();
-
-  if(!company || !phone){
-    alert('Kompania dhe telefoni janë të detyrueshëm.');
-    return;
-  }
-
-  const id = 'L'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4);
-  const leadRow = {
-    id,
-    created_at: todayStr(),
-    company,
-    contact: contact || null,
-    phone,
-    email: email || null,
-    nipt: nipt || null,     // opsional
-    source: source || null,
-    call_status,
-    answer_outcome,
-    next_follow_up: null,
-    meeting_status: meeting_date ? 'Pending' : null,
-    meeting_date: meeting_date,
-    field_agent: field_agent || null
-  };
-
-  if(answer_outcome==='Do ta eskaloj' || answer_outcome==='Do të mendohet'){
-    leadRow.next_follow_up = todayStr(addDays(new Date(),3));
-  }
-
-  EL('#loading').style.display='inline-flex';
-
-  // 1) INSERT në leads
-  const { error:insErr } = await sb.from('leads').insert([leadRow]);
-  if(insErr){
-    console.error('Leads INSERT error:', insErr);
-    alert(`Shtimi në DB dështoi: ${insErr.message || 'Shiko Console'}`);
-    EL('#loading').style.display='none';
-    return;
-  }
-
-  // 2) Log 'create' në lead_updates (me ose pa koment)
-  const createLog = { lead_id:id, kind:'create' };
-  if(primeNote) createLog.comment = primeNote;
-  await sb.from('lead_updates').insert([createLog]).catch(e=>console.warn('lead_updates INSERT error:', e));
-
-  await refreshLeads();
-  EL('#loading').style.display='none';
-  clearForm();
-}
-
-async function updateLeadFields(id, fields){
-  // UPDATE kërkon policy për 'update' te leads – nëse s’e ke aktivizuar, do japë alert.
-  const { error } = await sb.from('leads').update(fields).eq('id', id);
-  if(error){ console.warn(error); alert('UPDATE dështoi. Vendos RLS për UPDATE te leads ose hiqe thirrjen.'); }
-}
-
-/* ===== DB: UPDATES/COMMENTS ===== */
 async function fetchComments(lead_id){
-  const { data, error } = await sb.from('lead_updates').select('*').eq('lead_id', lead_id).order('ts',{ascending:false});
+  const { data, error } = await sb
+    .from('lead_updates')
+    .select('*')
+    .eq('lead_id', lead_id)
+    .order('ts',{ascending:false});
   if(error){ console.warn(error); return []; }
   return data || [];
 }
+
 async function insertUpdate(lead_id, payload){
   const row = Object.assign({ lead_id, kind:'update' }, payload);
   const { error } = await sb.from('lead_updates').insert([row]);
   if(error){ console.warn(error); alert('Nuk u ruajt përditësimi (lead_updates).'); }
 }
+
 async function insertComment(lead_id, text){
   const { error } = await sb.from('lead_updates').insert([{ lead_id, kind:'comment', comment:text }]);
   if(error){ console.warn(error); alert('Nuk u ruajt komenti (lead_updates).'); }
+}
+
+async function updateLeadFields(id, fields){
+  // Do të funksionojë vetëm nëse aktivizon politikën UPDATE (opsionale) në SQL
+  const { error } = await sb.from('leads').update(fields).eq('id', id);
+  if(error){ console.warn(error); alert('UPDATE dështoi (RLS). Mund ta lësh vetëm me log në lead_updates.'); }
 }
 
 /* ===== RENDER ===== */
@@ -433,7 +379,7 @@ function badgeResult(s){
 }
 function badgeMeeting(s){
   if(s==='Accepted') return `<span class="pill ok"><i class="fa-solid fa-user-check"></i> ${s}</span>`;
-  if(s==='Pending') return `<span class="pill warn"><i class="fa-solid fa-hourglass-half"></i> ${s}</span>`;
+  if(s==='Pending')  return `<span class="pill warn"><i class="fa-solid fa-hourglass-half"></i> ${s}</span>`;
   if(s==='Refused - Closed') return `<span class="pill bad"><i class="fa-solid fa-circle-xmark"></i> ${s}</span>`;
   return `<span class="pill">${ESC(s||'—')}</span>`;
 }
@@ -457,9 +403,9 @@ function render(){
   });
 
   if(sort==='created_desc') arr.sort((a,b)=> (b.created_at||'').localeCompare(a.created_at||''));
-  else if(sort==='created_asc') arr.sort((a,b)=> (a.created_at||'').localeCompare(b.created_at||''));
-  else if(sort==='company_asc') arr.sort((a,b)=> (a.company||'').localeCompare(b.company||''));
-  else if(sort==='company_desc') arr.sort((a,b)=> (b.company||'').localeCompare(a.company||''));
+  else if(sort==='created_asc') arr.sort((a,b)=> (a.created_at||'').localeCompare(b.created_at||'')); 
+  else if(sort==='company_asc') arr.sort((a,b)=> (a.company||'').localeCompare(b.company||'')); 
+  else if(sort==='company_desc') arr.sort((a,b)=> (b.company||'').localeCompare(a.company||'')); 
   else if(sort==='next_desc') arr.sort((a,b)=> (a.next_follow_up||'9999').localeCompare(b.next_follow_up||'9999'));
 
   EL('#stats').textContent = `${arr.length} lead(e) · total: ${LEADS.length}`;
@@ -486,12 +432,82 @@ function render(){
   }).join('') || `<tr><td colspan="11" class="muted">S'ka të dhëna.</td></tr>`;
 }
 
-/* ===== UI: FORM ===== */
+/* Debounce për kërkim */
+let _deb; function debouncedRender(){ clearTimeout(_deb); _deb=setTimeout(render,150); }
+
+/* ===== UI: FORM (RPC 1-round-trip) ===== */
 function clearForm(){
   ['f_company','f_contact','f_phone','f_email','f_nipt','f_field_agent','f_meeting_date','f_notes'].forEach(id=> EL('#'+id).value='');
   EL('#f_source').value='QKB';
   EL('#f_call_status').value='Not answered';
   EL('#f_answer_outcome').value='';
+}
+
+async function addLead(){
+  const company = EL('#f_company').value.trim();
+  const contact = EL('#f_contact').value.trim();
+  const phone   = EL('#f_phone').value.trim();
+  const email   = EL('#f_email').value.trim();
+  const nipt    = EL('#f_nipt').value.trim();
+  const source  = EL('#f_source').value;
+  const call_status = EL('#f_call_status').value;
+  const answer_outcome = EL('#f_answer_outcome').value || null;
+  const field_agent = EL('#f_field_agent').value.trim();
+  const meeting_date = EL('#f_meeting_date').value || null;
+  const primeNote = EL('#f_notes').value.trim();
+
+  if(!company || !phone){
+    alert('Kompania dhe telefoni janë të detyrueshëm.');
+    return;
+  }
+
+  const id = 'L'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4);
+  let nextFU = null;
+  if(answer_outcome==='Do ta eskaloj' || answer_outcome==='Do të mendohet'){
+    nextFU = todayStr(addDays(new Date(),3));
+  }
+  const meeting_status = meeting_date ? 'Pending' : null;
+
+  EL('#loading').style.display='inline-flex';
+
+  const { error } = await sb.rpc('add_lead_with_log', {
+    p_id: id,
+    p_created_at: todayStr(),
+    p_company: company,
+    p_contact: contact,
+    p_phone: phone,
+    p_email: email,
+    p_nipt: nipt,
+    p_source: source,
+    p_call_status: call_status,
+    p_answer_outcome: answer_outcome,
+    p_next_follow_up: nextFU,
+    p_meeting_status: meeting_status,
+    p_meeting_date: meeting_date || null,
+    p_field_agent: field_agent,
+    p_prime_note: primeNote
+  });
+
+  if(error){
+    console.error('RPC add_lead_with_log error:', error);
+    alert(`Shtimi dështoi: ${error.message || 'Shiko Console'}`);
+    EL('#loading').style.display='none';
+    return;
+  }
+
+  /* Optimistic UI: shtoje menjëherë */
+  LEADS.unshift({
+    id, created_at: todayStr(), company, contact,
+    phone, email: email || null, nipt: nipt || null, source,
+    call_status, answer_outcome, next_follow_up: nextFU,
+    meeting_status, meeting_date: meeting_date || null, field_agent: field_agent || null
+  });
+  render();
+  clearForm();
+
+  /* Rifresko nga DB për konsistencë */
+  await refreshLeads();
+  EL('#loading').style.display='none';
 }
 
 /* ===== MODAL ===== */
@@ -510,7 +526,6 @@ async function openModal(id){
   EL('#m_email').value = x.email || '';
   EL('#m_comment').value = '';
 
-  // Lexo komentet/historikun nga DB
   COMMENTS[id] = await fetchComments(id);
   renderTimeline(id);
 
@@ -554,7 +569,7 @@ async function saveModal(){
 
   EL('#loading').style.display='inline-flex';
 
-  // 1) Log në lead_updates
+  /* 1) Log-o ndryshimet */
   await insertUpdate(x.id, {
     new_result: newResult,
     next_follow_up: nextFU || autoFU,
@@ -566,7 +581,7 @@ async function saveModal(){
   });
   if(comment){ await insertComment(x.id, comment); }
 
-  // 2) Përditëso rreshtin (kërkon policy UPDATE – nëse s'e ke, shfaqet alert dhe vazhdon)
+  /* 2) (Opsionale) UPDATE rreshti – vetëm nëse ke aktivizuar policy UPDATE */
   await updateLeadFields(x.id, {
     answer_outcome: newResult,
     next_follow_up: nextFU || autoFU,
@@ -576,7 +591,6 @@ async function saveModal(){
     email: email
   });
 
-  // 3) Rifresko UI
   await refreshLeads();
   COMMENTS[x.id] = await fetchComments(x.id);
   renderTimeline(x.id);
@@ -589,7 +603,7 @@ async function quickFollow(id){
   const next = todayStr(addDays(new Date(),3));
   EL('#loading').style.display='inline-flex';
   await insertUpdate(id, { new_result: x.answer_outcome || null, next_follow_up: next });
-  await updateLeadFields(id, { next_follow_up: next }); // kërkon policy UPDATE
+  await updateLeadFields(id, { next_follow_up: next }); // funksionon vetëm nëse ke policy UPDATE
   await refreshLeads();
   EL('#loading').style.display='none';
 }
@@ -602,7 +616,7 @@ function sendEmailTemplate(){
   const body = encodeURIComponent(
 `Përshëndetje ${x.contact||'—'},
 
-Ju falënderojmë për kohën në telefon. Siç u dakorduam, po ju përcjellim informacionin për shërbimet tona. 
+Ju falënderojmë për kohën në telefon. Siç u dakorduam, po ju përcjellim informacionin për shërbimet tona.
 Do të rikthehemi me një telefonatë follow-up brenda 3 ditësh (ose sipas mundësive tuaja).
 
 — Detaje:
