@@ -1,0 +1,709 @@
+<!DOCTYPE html>
+<html lang="sq">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ADC · Mini CRM (Leads)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+<style>
+  :root{
+    --brand:#2563eb; --brand-2:#1d4ed8; --ok:#16a34a; --warn:#d97706; --bad:#b91c1c;
+    --text:#0b1220; --muted:#6b7280; --line:#e5e7eb; --surface:#fff; --surface-2:#f8fafc;
+    --shadow:0 12px 28px rgba(2,8,23,.08); --radius:14px;
+  }
+  @media (prefers-color-scheme: dark){
+    :root{ --text:#e5e7eb; --muted:#9ca3af; --line:#1f2937; --surface:#111827; --surface-2:#0b1220;
+      --shadow:0 18px 36px rgba(0,0,0,.38); }
+  }
+  *{box-sizing:border-box} body{margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Arial; color:var(--text); background:linear-gradient(160deg,#f7fbff 0%,#f5f7fb 100%)}
+  header{position:sticky; top:0; z-index:10; background:linear-gradient(120deg,rgba(37,99,235,.10),rgba(37,99,235,.08)); border-bottom:1px solid var(--line); backdrop-filter:blur(8px)}
+  .wrap{max-width:1200px; margin:0 auto; padding:16px}
+  h1{margin:0; font-size:20px; font-weight:800}
+  .grid{display:grid; gap:14px}
+  .two{grid-template-columns:1fr}
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:14px}
+  label{font-weight:800; font-size:12px; color:var(--muted)}
+  input,select,textarea{width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--surface-2)}
+  textarea{min-height:80px}
+  .row{display:grid; grid-template-columns:repeat(4,1fr); gap:10px}
+  .row-3{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+  .row-2{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
+  .btn{display:inline-flex; align-items:center; gap:8px; border:1px solid var(--line); border-radius:10px; padding:10px 12px; cursor:pointer; background:var(--surface); font-weight:800}
+  .btn.primary{background:linear-gradient(180deg,var(--brand),var(--brand-2)); color:#fff; border-color:transparent}
+  .btn.ok{background:linear-gradient(180deg,var(--ok),#15803d); color:#fff; border-color:transparent}
+  .btn.warn{background:linear-gradient(180deg,var(--warn),#b45309); color:#fff; border-color:transparent}
+  .btn.bad{background:linear-gradient(180deg,var(--bad),#7f1d1d); color:#fff; border-color:transparent}
+  .toolbar{display:flex; gap:10px; flex-wrap:wrap}
+  table{width:100%; border-collapse:separate; border-spacing:0}
+  th,td{padding:10px 12px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; font-size:14px}
+  th{font-size:12px; color:var(--muted)}
+  tr:hover td{background:rgba(37,99,235,.05)}
+  .pill{display:inline-flex; align-items:center; gap:6px; padding:3px 8px; border-radius:999px; font-size:12px; border:1px solid var(--line); background:#eef2ff; color:#1d4ed8}
+  .pill.ok{background:#dcfce7; color:#166534}
+  .pill.bad{background:#fee2e2; color:#7f1d1d}
+  .pill.warn{background:#fff7ed; color:#92400e}
+  .muted{color:var(--muted); font-size:12px}
+  .tag{display:inline-block; padding:2px 6px; border-radius:999px; border:1px solid var(--line); font-size:11px; background:#f1f5f9}
+  .due{color:#fff; background:#ef4444; padding:2px 6px; border-radius:8px; font-weight:800; font-size:11px}
+  .modal{position:fixed; inset:0; background:rgba(0,0,0,.55); display:none; align-items:center; justify-content:center; padding:18px; z-index:100}
+  .panel{max-width:760px; width:100%; background:var(--surface); border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow); padding:16px}
+  .top{display:flex; align-items:center; justify-content:space-between; gap:8px}
+  .flex{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+  .nowrap{white-space:nowrap}
+  .right{display:flex; gap:8px; justify-content:flex-end}
+  .hide{display:none}
+  .table-scroll{width:100%; overflow:auto}
+  @media (max-width: 980px){ .row,.row-3,.row-2{grid-template-columns:1fr} }
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap" style="display:flex; align-items:center; justify-content:space-between; gap:12px">
+    <div>
+      <h1><i class="fa-solid fa-address-book"></i> ADC · Mini CRM (Leads)</h1>
+      <div class="muted">Gjenerim & ndjekje e lead-eve (telefonata, follow-ups, takime, komente) · Ruajtje në Google Sheets</div>
+    </div>
+    <div class="toolbar">
+      <button class="btn" onclick="downloadCSV()"><i class="fa-solid fa-file-export"></i> Eksport CSV</button>
+      <label class="btn">
+        <i class="fa-solid fa-file-import"></i> Import CSV
+        <input id="csvInput" type="file" accept=".csv" class="hide" onchange="importCSV(this.files[0])">
+      </label>
+      <button class="btn" onclick="seedDemo()">Mbush me shembull</button>
+      <button class="btn" onclick="clearAll()"><i class="fa-solid fa-trash"></i> Pastro gjithçka</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap grid two" id="app">
+  <!-- SHTO LEAD (SIPËR) -->
+  <section class="card">
+    <div class="top">
+      <h2 style="margin:0;font-size:16px">Shto lead</h2>
+      <div class="muted">Çdo lead ruhet lokalisht dhe dërgohet edhe në Google Sheets.</div>
+    </div>
+    <div class="grid" style="margin-top:10px">
+      <div class="row">
+        <div>
+          <label>Emri i kompanisë</label>
+          <input id="f_company" placeholder="p.sh. Test sh.p.k.">
+        </div>
+        <div>
+          <label>Person kontakti</label>
+          <input id="f_contact" placeholder="Emër Mbiemër">
+        </div>
+        <div>
+          <label>Telefon</label>
+          <input id="f_phone" placeholder="+355 ...">
+        </div>
+        <div>
+          <label>Email</label>
+          <input id="f_email" type="email" placeholder="kontakt@kompania.al">
+        </div>
+      </div>
+
+      <div class="row-3">
+        <div>
+          <label>Burimi</label>
+          <select id="f_source">
+            <option>QKB</option>
+            <option>Google Maps</option>
+            <option>LinkedIn</option>
+            <option>Tjetër</option>
+          </select>
+        </div>
+        <div>
+          <label>Status Telefonate</label>
+          <select id="f_call_status">
+            <option>Not answered</option>
+            <option>Answered</option>
+            <option>Invalid number</option>
+          </select>
+        </div>
+        <div>
+          <label>Rezultati (nëse u përgjigj)</label>
+          <select id="f_answer_outcome">
+            <option value="">—</option>
+            <option>I interesuar</option>
+            <option>I pa interesuar</option>
+            <option>Do ta eskaloj</option>
+            <option>Do të mendohet</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row-2">
+        <div>
+          <label>Agjent terreni (nëse caktohet takim)</label>
+          <input id="f_field_agent" placeholder="p.sh. Arben H.">
+        </div>
+        <div>
+          <label>Data takimit (ops.)</label>
+          <input id="f_meeting_date" type="date">
+        </div>
+      </div>
+
+      <div>
+        <label>Shënime</label>
+        <textarea id="f_notes" placeholder="Shënim fillestar"></textarea>
+      </div>
+      <div class="right">
+        <button class="btn primary" onclick="addLead()"><i class="fa-solid fa-plus"></i> Shto lead</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- LISTA & FILTRA (POSHTË) -->
+  <section class="card">
+    <div class="top">
+      <h2 style="margin:0;font-size:16px">Leads</h2>
+      <div class="flex">
+        <input id="q" placeholder="Kërko (kompania, kontakt, tel, email)" oninput="render()">
+        <select id="flt_source" onchange="render()">
+          <option value="">Burimi (gjithë)</option>
+          <option>QKB</option>
+          <option>Google Maps</option>
+          <option>LinkedIn</option>
+          <option>Tjetër</option>
+        </select>
+        <select id="flt_call" onchange="render()">
+          <option value="">Tel status (gjithë)</option>
+          <option>Answered</option>
+          <option>Not answered</option>
+          <option>Invalid number</option>
+        </select>
+        <select id="flt_result" onchange="render()">
+          <option value="">Rezultat (gjithë)</option>
+          <option>I interesuar</option>
+          <option>I pa interesuar</option>
+          <option>Do ta eskaloj</option>
+          <option>Do të mendohet</option>
+        </select>
+        <select id="flt_meeting" onchange="render()">
+          <option value="">Takim (gjithë)</option>
+          <option>Pending</option>
+          <option>Accepted</option>
+          <option>Refused - Closed</option>
+        </select>
+        <label class="btn"><i class="fa-solid fa-sort"></i>
+          <select id="sortBy" onchange="render()" style="border:0;background:transparent">
+            <option value="created_desc">Më të rejat</option>
+            <option value="created_asc">Më të vjetrat</option>
+            <option value="company_asc">Kompania A→Z</option>
+            <option value="company_desc">Kompania Z→A</option>
+            <option value="next_desc">Follow-up më urgjent</option>
+          </select>
+        </label>
+      </div>
+    </div>
+
+    <div class="muted" id="stats" style="margin:8px 0"></div>
+
+    <div class="table-scroll">
+      <table id="tbl">
+        <thead>
+          <tr>
+            <th>Kompania</th>
+            <th>Kontakt</th>
+            <th>Burimi</th>
+            <th>Tel status</th>
+            <th>Rezultat</th>
+            <th>Follow-up</th>
+            <th>Takimi</th>
+            <th>Agjenti</th>
+            <th>Komente</th>
+            <th class="nowrap">Veprime</th>
+          </tr>
+        </thead>
+        <tbody id="rows"></tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<!-- MODAL: Komente & Takimi -->
+<div class="modal" id="modal">
+  <div class="panel">
+    <div class="top">
+      <div>
+        <h3 id="m_title" style="margin:0"></h3>
+        <div class="muted" id="m_meta"></div>
+      </div>
+      <button class="btn" onclick="closeModal()">Mbyll</button>
+    </div>
+
+    <div class="grid" style="margin-top:12px">
+      <div class="row-2">
+        <div>
+          <label>Përditëso rezultat</label>
+          <select id="m_result">
+            <option value="">—</option>
+            <option>I interesuar</option>
+            <option>I pa interesuar</option>
+            <option>Do ta eskaloj</option>
+            <option>Do të mendohet</option>
+          </select>
+        </div>
+        <div>
+          <label>Follow-up (auto +3 ditë në eskalim/mendim)</label>
+          <input id="m_next" type="date">
+        </div>
+      </div>
+
+      <div class="row-2">
+        <div>
+          <label>Status takimi</label>
+          <select id="m_meeting_status">
+            <option value="">—</option>
+            <option>Pending</option>
+            <option>Accepted</option>
+            <option>Refused - Closed</option>
+          </select>
+        </div>
+        <div>
+          <label>Data takimit</label>
+          <input id="m_meeting_date" type="date">
+        </div>
+      </div>
+
+      <div class="row-2">
+        <div>
+          <label>Agjent terreni</label>
+          <input id="m_agent" placeholder="p.sh. Arben H.">
+        </div>
+        <div>
+          <label>Email i klientit</label>
+          <input id="m_email">
+        </div>
+      </div>
+
+      <div>
+        <label>Koment i ri</label>
+        <textarea id="m_comment" placeholder="Përshkrim i telefonatës / takimit / follow-up"></textarea>
+      </div>
+
+      <div class="flex right">
+        <button class="btn" onclick="sendEmailTemplate()"><i class="fa-solid fa-envelope"></i> Dërgo email</button>
+        <button class="btn" onclick="downloadICSFollowup()"><i class="fa-regular fa-calendar-plus"></i> .ics Follow-up</button>
+        <button class="btn" onclick="downloadICSMeeting()"><i class="fa-regular fa-calendar"></i> .ics Takim</button>
+        <button class="btn ok" onclick="saveModal()"><i class="fa-solid fa-floppy-disk"></i> Ruaj</button>
+      </div>
+
+      <div>
+        <h4 style="margin:12px 0 6px 0">Kronologji komentesh</h4>
+        <div id="m_timeline" class="grid"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ====== KONFIGURIM BACKEND ====== */
+const SHEETS_ENDPOINT = 'VENDOS_WEB_APP_URL_KETU'; // p.sh. https://script.google.com/macros/s/.../exec
+
+/* ====== Storage & Utils ====== */
+const LS_KEY = 'ADC_MINI_CRM_V1';
+let LEADS = load();
+
+function load(){ try{ return JSON.parse(localStorage.getItem(LS_KEY)||'[]'); }catch(_){ return []; } }
+function save(){ localStorage.setItem(LS_KEY, JSON.stringify(LEADS)); }
+function uid(){ return 'L'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4); }
+function todayStr(d=new Date()){ const z=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate()); }
+function addDays(date,days){ const d=new Date(date); d.setDate(d.getDate()+days); return d; }
+function htmlEscape(s){ return (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;', "'":'&#39;' }[m])); }
+
+/* ====== Sheets helpers ====== */
+async function logCreateToSheets(x){
+  if(!SHEETS_ENDPOINT.startsWith('https')) return;
+  const payload = {
+    action:'create_lead',
+    id:x.id, created_at:x.created_at, company:x.company, contact:x.contact, phone:x.phone, email:x.email,
+    source:x.source, call_status:x.call_status, answer_outcome:x.answer_outcome,
+    next_follow_up:x.next_follow_up, meeting_status:x.meeting_status, meeting_date:x.meeting_date,
+    field_agent:x.field_agent, comments_count:(x.comments||[]).length,
+    last_comment:(x.comments||[]).slice(-1)[0]?.text || ''
+  };
+  try{
+    await fetch(SHEETS_ENDPOINT, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+  }catch(_){}
+}
+async function logUpdateToSheets(id, data){
+  if(!SHEETS_ENDPOINT.startsWith('https')) return;
+  const payload = Object.assign({ action:'update_lead', id }, data);
+  try{
+    await fetch(SHEETS_ENDPOINT, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+  }catch(_){}
+}
+async function logCommentToSheets(id, text){
+  if(!SHEETS_ENDPOINT.startsWith('https')) return;
+  const payload = { action:'add_comment', id, comment:text };
+  try{
+    await fetch(SHEETS_ENDPOINT, {method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify(payload)});
+  }catch(_){}
+}
+
+/* ====== Add Lead ====== */
+function addLead(){
+  const obj = {
+    id: uid(),
+    company: document.getElementById('f_company').value.trim(),
+    contact: document.getElementById('f_contact').value.trim(),
+    phone: document.getElementById('f_phone').value.trim(),
+    email: document.getElementById('f_email').value.trim(),
+    source: document.getElementById('f_source').value,
+    call_status: document.getElementById('f_call_status').value,
+    answer_outcome: document.getElementById('f_answer_outcome').value || "",
+    field_agent: document.getElementById('f_field_agent').value.trim(),
+    meeting_date: document.getElementById('f_meeting_date').value || "",
+    meeting_status: "", // Pending / Accepted / Refused - Closed
+    next_follow_up: "",
+    comments: [],
+    created_at: todayStr()
+  };
+
+  if(!obj.company || !obj.phone){
+    alert('Kompania dhe telefoni janë të detyrueshëm.');
+    return;
+  }
+
+  if(obj.answer_outcome==='Do ta eskaloj' || obj.answer_outcome==='Do të mendohet'){
+    obj.next_follow_up = todayStr(addDays(new Date(),3));
+  }
+  if(obj.meeting_date) obj.meeting_status = 'Pending';
+
+  const prime = document.getElementById('f_notes').value.trim();
+  if(prime){
+    obj.comments.push({ts:new Date().toISOString(), text:prime});
+  }
+
+  LEADS.unshift(obj); save(); render();
+  // Log në Sheets (fire-and-forget)
+  logCreateToSheets(obj);
+  clearForm();
+}
+
+function clearForm(){
+  ['f_company','f_contact','f_phone','f_email','f_field_agent','f_meeting_date','f_notes'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('f_source').value='QKB';
+  document.getElementById('f_call_status').value='Not answered';
+  document.getElementById('f_answer_outcome').value='';
+}
+
+/* ====== List / Filters ====== */
+function render(){
+  const q = document.getElementById('q').value.toLowerCase().trim();
+  const fs = document.getElementById('flt_source').value;
+  const fc = document.getElementById('flt_call').value;
+  const fr = document.getElementById('flt_result').value;
+  const fm = document.getElementById('flt_meeting').value;
+  const sort = document.getElementById('sortBy').value;
+
+  let arr = LEADS.filter(x=>{
+    const hay = (x.company+' '+x.contact+' '+x.phone+' '+x.email).toLowerCase();
+    const passQ = !q || hay.includes(q);
+    const passS = !fs || x.source===fs;
+    const passC = !fc || x.call_status===fc;
+    const passR = !fr || x.answer_outcome===fr;
+    const passM = !fm || x.meeting_status===fm;
+    return passQ && passS && passC && passR && passM;
+  });
+
+  if(sort==='created_desc') arr.sort((a,b)=> (b.created_at||'').localeCompare(a.created_at||''));
+  else if(sort==='created_asc') arr.sort((a,b)=> (a.created_at||'').localeCompare(b.created_at||''));
+  else if(sort==='company_asc') arr.sort((a,b)=> (a.company||'').localeCompare(b.company||''));
+  else if(sort==='company_desc') arr.sort((a,b)=> (b.company||'').localeCompare(a.company||''));
+  else if(sort==='next_desc') arr.sort((a,b)=> (a.next_follow_up||'9999').localeCompare(b.next_follow_up||'9999'));
+
+  document.getElementById('stats').textContent = `${arr.length} lead(e) · total: ${LEADS.length}`;
+
+  const rows = arr.map(x=>{
+    const due = x.next_follow_up && x.next_follow_up <= todayStr() ? `<span class="due">Due</span>` : '';
+    const commCount = x.comments?.length || 0;
+    return `<tr>
+      <td><strong>${htmlEscape(x.company)}</strong><br><span class="muted">${htmlEscape(x.created_at)}</span></td>
+      <td>${htmlEscape(x.contact)}<br><span class="muted">${htmlEscape(x.phone)} ${x.email? ' · '+htmlEscape(x.email):''}</span></td>
+      <td><span class="tag">${htmlEscape(x.source)}</span></td>
+      <td>${badgeCall(x.call_status)}</td>
+      <td>${badgeResult(x.answer_outcome)}</td>
+      <td>${x.next_follow_up? htmlEscape(x.next_follow_up): '<span class="muted">—</span>'} ${due}</td>
+      <td>${x.meeting_status? badgeMeeting(x.meeting_status):'<span class="muted">—</span>'}<br><span class="muted">${x.meeting_date||''}</span></td>
+      <td>${htmlEscape(x.field_agent||'')}</td>
+      <td><a href="#" onclick="openModal('${x.id}');return false;"><i class="fa-regular fa-comment-dots"></i> ${commCount}</a></td>
+      <td class="nowrap">
+        <button class="btn" title="Follow-up +3 ditë" onclick="quickFollow('${x.id}')"><i class="fa-regular fa-bell"></i></button>
+        <button class="btn" title="Hap" onclick="openModal('${x.id}')"><i class="fa-regular fa-pen-to-square"></i></button>
+        <button class="btn bad" title="Fshi" onclick="delLead('${x.id}')"><i class="fa-regular fa-trash-can"></i></button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('rows').innerHTML = rows || `<tr><td colspan="10" class="muted">S'ka të dhëna.</td></tr>`;
+}
+
+function badgeCall(s){
+  if(s==='Answered') return `<span class="pill ok"><i class="fa-solid fa-phone"></i> ${s}</span>`;
+  if(s==='Not answered') return `<span class="pill warn"><i class="fa-solid fa-phone-slash"></i> ${s}</span>`;
+  if(s==='Invalid number') return `<span class="pill bad"><i class="fa-solid fa-triangle-exclamation"></i> ${s}</span>`;
+  return `<span class="pill">${htmlEscape(s||'—')}</span>`;
+}
+function badgeResult(s){
+  if(!s) return `<span class="muted">—</span>`;
+  if(s==='I interesuar') return `<span class="pill ok"><i class="fa-solid fa-check"></i> ${s}</span>`;
+  if(s==='I pa interesuar') return `<span class="pill bad"><i class="fa-solid fa-xmark"></i> ${s}</span>`;
+  if(s==='Do ta eskaloj' || s==='Do të mendohet') return `<span class="pill warn"><i class="fa-solid fa-clock"></i> ${s}</span>`;
+  return `<span class="pill">${htmlEscape(s)}</span>`;
+}
+function badgeMeeting(s){
+  if(s==='Accepted') return `<span class="pill ok"><i class="fa-solid fa-user-check"></i> ${s}</span>`;
+  if(s==='Pending') return `<span class="pill warn"><i class="fa-solid fa-hourglass-half"></i> ${s}</span>`;
+  if(s==='Refused - Closed') return `<span class="pill bad"><i class="fa-solid fa-circle-xmark"></i> ${s}</span>`;
+  return `<span class="pill">${htmlEscape(s)}</span>`;
+}
+
+/* ====== Quick follow-up +3 ====== */
+function quickFollow(id){
+  const x = LEADS.find(i=>i.id===id); if(!x) return;
+  x.next_follow_up = todayStr(addDays(new Date(),3));
+  save(); render();
+  logUpdateToSheets(id, { new_result:x.answer_outcome||'', next_follow_up:x.next_follow_up });
+}
+
+/* ====== Delete ====== */
+function delLead(id){
+  if(!confirm('Fshini këtë lead?')) return;
+  LEADS = LEADS.filter(x=>x.id!==id); save(); render();
+  // (opsionale) mund të log-osh edhe fshirjet në Updates nëse do
+}
+
+/* ====== Modal (edit, comments, meeting) ====== */
+let CURRENT_ID = null;
+
+function openModal(id){
+  CURRENT_ID = id;
+  const x = LEADS.find(i=>i.id===id); if(!x) return;
+  document.getElementById('m_title').textContent = x.company;
+  document.getElementById('m_meta').innerHTML = `${htmlEscape(x.contact||'')} · <span class="muted">${htmlEscape(x.phone||'')}</span>`;
+  document.getElementById('m_result').value = x.answer_outcome || '';
+  document.getElementById('m_next').value = x.next_follow_up || '';
+  document.getElementById('m_meeting_status').value = x.meeting_status || '';
+  document.getElementById('m_meeting_date').value = x.meeting_date || '';
+  document.getElementById('m_agent').value = x.field_agent || '';
+  document.getElementById('m_email').value = x.email || '';
+  document.getElementById('m_comment').value = '';
+
+  const tl = (x.comments||[]).slice().reverse().map(c=>{
+    const d = new Date(c.ts);
+    return `<div class="card" style="padding:10px">
+      <div class="muted">${d.toLocaleString()}</div>
+      <div>${htmlEscape(c.text||'')}</div>
+    </div>`;
+  }).join('');
+  document.getElementById('m_timeline').innerHTML = tl || `<div class="muted">S’ka komente ende.</div>`;
+
+  document.getElementById('modal').style.display='flex';
+}
+function closeModal(){ document.getElementById('modal').style.display='none'; CURRENT_ID=null; }
+
+function saveModal(){
+  const x = LEADS.find(i=>i.id===CURRENT_ID); if(!x) return;
+
+  const newResult = document.getElementById('m_result').value;
+  const nextFU = document.getElementById('m_next').value;
+  const mStatus = document.getElementById('m_meeting_status').value;
+  const mDate = document.getElementById('m_meeting_date').value;
+  const agent = document.getElementById('m_agent').value.trim();
+  const email = document.getElementById('m_email').value.trim();
+  const comment = document.getElementById('m_comment').value.trim();
+
+  x.answer_outcome = newResult || x.answer_outcome || '';
+
+  if((newResult==='Do ta eskaloj' || newResult==='Do të mendohet') && !nextFU){
+    x.next_follow_up = todayStr(addDays(new Date(),3));
+  } else {
+    x.next_follow_up = nextFU || x.next_follow_up || '';
+  }
+
+  x.meeting_status = mStatus || x.meeting_status || '';
+  x.meeting_date = mDate || x.meeting_date || '';
+  x.field_agent = agent;
+  x.email = email;
+
+  if(comment){
+    x.comments.push({ts:new Date().toISOString(), text:comment});
+    logCommentToSheets(x.id, comment);
+  }
+
+  save(); render();
+  // log update te Sheets
+  logUpdateToSheets(x.id, {
+    new_result: x.answer_outcome,
+    next_follow_up: x.next_follow_up,
+    meeting_status: x.meeting_status,
+    meeting_date: x.meeting_date,
+    field_agent: x.field_agent,
+    email: x.email
+  });
+  openModal(x.id); // rifresko modalin
+}
+
+/* ====== Email template (mailto) ====== */
+function sendEmailTemplate(){
+  const x = LEADS.find(i=>i.id===CURRENT_ID); if(!x) return;
+  const to = x.email || '';
+  const subj = encodeURIComponent(`Lidhur me bashkëpunimin · ${x.company}`);
+  const body = encodeURIComponent(
+`Përshëndetje ${x.contact||'—'},
+
+Ju falënderojmë për kohën në telefon. Siç u dakorduam, po ju përcjellim informacionin për shërbimet tona. 
+Do të rikthehemi me një telefonatë follow-up brenda 3 ditësh (ose sipas mundësive tuaja).
+
+— Detaje:
+• Kompania: ${x.company}
+• Kontakt: ${x.contact||''}
+• Tel: ${x.phone||''}
+
+Faleminderit,
+ADC`
+  );
+  const url = `mailto:${to}?subject=${subj}&body=${body}`;
+  window.location.href = url;
+}
+
+/* ====== ICS (download) ====== */
+function makeICS({title, description, date, durationMinutes=30}){
+  // date: 'YYYY-MM-DD'
+  const dt = new Date(date+'T09:00:00'); // default 09:00
+  const dtEnd = new Date(dt.getTime() + durationMinutes*60000);
+  const fmt = d => d.toISOString().replace(/[-:]/g,'').replace(/\.\d{3}Z$/,'Z');
+  const ics =
+`BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//ADC Mini CRM//EN
+CALSCALE:GREGORIAN
+BEGIN:VEVENT
+DTSTAMP:${fmt(new Date())}
+DTSTART:${fmt(dt)}
+DTEND:${fmt(dtEnd)}
+SUMMARY:${title}
+DESCRIPTION:${description.replace(/\r?\n/g,'\\n')}
+END:VEVENT
+END:VCALENDAR`;
+  const blob = new Blob([ics], {type:'text/calendar;charset=utf-8;'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `${title.replace(/\s+/g,'_')}.ics`;
+  a.click();
+}
+
+function downloadICSFollowup(){
+  const x = LEADS.find(i=>i.id===CURRENT_ID); if(!x) return;
+  if(!x.next_follow_up){ alert('Së pari vendos datën e follow-up.'); return; }
+  makeICS({
+    title:`Follow-up · ${x.company}`,
+    description:`Telefonatë follow-up për ${x.company}\nKontakt: ${x.contact||''}\nTel: ${x.phone||''}`,
+    date: x.next_follow_up
+  });
+}
+function downloadICSMeeting(){
+  const x = LEADS.find(i=>i.id===CURRENT_ID); if(!x) return;
+  if(!x.meeting_date){ alert('Së pari vendos datën e takimit.'); return; }
+  makeICS({
+    title:`Takim · ${x.company}`,
+    description:`Takim me ${x.company}\nKontakt: ${x.contact||''}\nTel: ${x.phone||''}\nAgjent: ${x.field_agent||''}`,
+    date: x.meeting_date
+  });
+}
+
+/* ====== Export / Import CSV ====== */
+function downloadCSV(){
+  const cols = ["id","created_at","company","contact","phone","email","source","call_status","answer_outcome","next_follow_up","meeting_status","meeting_date","field_agent","comments_count","last_comment"];
+  const lines = [cols.join(',')];
+  LEADS.forEach(x=>{
+    const last = (x.comments||[]).slice(-1)[0]?.text || '';
+    const row = [
+      x.id, x.created_at, x.company, x.contact, x.phone, x.email, x.source, x.call_status,
+      x.answer_outcome, x.next_follow_up, x.meeting_status, x.meeting_date, x.field_agent,
+      (x.comments||[]).length, last.replace(/\n/g,' ').slice(0,200)
+    ].map(v => `"${String(v??'').replace(/"/g,'""')}"`);
+    lines.push(row.join(','));
+  });
+  const blob = new Blob([lines.join('\r\n')], {type:'text/csv;charset=utf-8;'});
+  const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='adc_leads.csv'; a.click();
+}
+
+function importCSV(file){
+  if(!file) return;
+  const reader = new FileReader();
+  reader.onload = e=>{
+    const text = e.target.result;
+    const rows = text.split(/\r?\n/).filter(Boolean);
+    rows.shift(); // header
+    const out = [];
+    rows.forEach(line=>{
+      const cells = parseCSVLine(line);
+      const obj = {
+        id: cells[0]||uid(),
+        created_at: cells[1]||todayStr(),
+        company: cells[2]||'',
+        contact: cells[3]||'',
+        phone: cells[4]||'',
+        email: cells[5]||'',
+        source: cells[6]||'',
+        call_status: cells[7]||'',
+        answer_outcome: cells[8]||'',
+        next_follow_up: cells[9]||'',
+        meeting_status: cells[10]||'',
+        meeting_date: cells[11]||'',
+        field_agent: cells[12]||'',
+        comments: [],
+      };
+      out.push(obj);
+    });
+    LEADS = out.concat(LEADS); save(); render();
+    alert('Import i përfunduar.');
+  };
+  reader.readAsText(file);
+}
+function parseCSVLine(line){
+  const out=[]; let cur=''; let q=false;
+  for(let i=0;i<line.length;i++){
+    const ch=line[i];
+    if(q){
+      if(ch=='"' && line[i+1]=='"'){ cur+='"'; i++; }
+      else if(ch=='"'){ q=false; }
+      else cur+=ch;
+    }else{
+      if(ch==','){ out.push(cur); cur=''; }
+      else if(ch=='"'){ q=true; }
+      else cur+=ch;
+    }
+  }
+  out.push(cur); return out;
+}
+
+/* ====== Demo & Clear ====== */
+function seedDemo(){
+  if(!confirm('Të shtohen disa të dhëna demo?')) return;
+  const now=todayStr();
+  const demo=[
+    {company:'Alba Tech sh.p.k.', contact:'Erion D.', phone:'+355 69 000 1111', email:'info@albatech.al', source:'QKB', call_status:'Answered', answer_outcome:'Do ta eskaloj', next_follow_up: todayStr(addDays(new Date(),3)), meeting_status:'', meeting_date:'', field_agent:'', comments:[{ts:new Date().toISOString(), text:'Telefonatë prezantuese, do e çojë te financa.'}], created_at:now},
+    {company:'Green Market', contact:'Arta M.', phone:'+355 68 222 3333', email:'', source:'Google Maps', call_status:'Not answered', answer_outcome:'', next_follow_up:'', meeting_status:'', meeting_date:'', field_agent:'', comments:[], created_at:now},
+    {company:'Balkan Logistics', contact:'Nderim K.', phone:'+355 67 555 6666', email:'sales@bll.al', source:'LinkedIn', call_status:'Answered', answer_outcome:'I interesuar', next_follow_up:'', meeting_status:'Pending', meeting_date: todayStr(addDays(new Date(),2)), field_agent:'Klodian H.', comments:[{ts:new Date().toISOString(), text:'Takim i kërkuar nga klienti, u caktua te marta ora 11:00.'}], created_at:now}
+  ];
+  demo.forEach(d=>{ d.id=uid(); LEADS.unshift(d); logCreateToSheets(d); });
+  save(); render();
+}
+function clearAll(){
+  if(!confirm('Fshini të gjitha të dhënat?')) return;
+  LEADS=[]; save(); render();
+}
+
+/* ====== Init ====== */
+document.addEventListener('DOMContentLoaded', ()=>{
+  render();
+});
+</script>
+</body>
+</html>
