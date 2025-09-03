@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="sq">
 <head>
@@ -39,7 +38,7 @@
   .toolbar{display:flex; gap:10px; flex-wrap:wrap}
   table{width:100%; border-collapse:separate; border-spacing:0}
   th,td{padding:10px 12px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; font-size:14px}
-  th{font-size:12px; color:var(--muted)}
+  th{font-size:12px; color:var(--muted')}
   tr:hover td{background:rgba(37,99,235,.05)}
   .pill{display:inline-flex; align-items:center; gap:6px; padding:3px 8px; border-radius:999px; font-size:12px; border:1px solid var(--line); background:#eef2ff; color:#1d4ed8}
   .pill.ok{background:#dcfce7; color:#166534}
@@ -360,15 +359,15 @@
 
 <script>
 /* ===== KONFIGURIM SUPABASE ===== */
-const SUPABASE_URL = 'https://cpkyagcuowjvofgcgdwx.supabase.co'; // ← ZËVENDËSOJE NËSE NDRYSHON
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9....'; // ← VENDOS ANON KEY TËND
+const SUPABASE_URL = 'https://cpkyagcuowjvofgcgdwx.supabase.co';  // pa slash në fund
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwa3lhZ2N1b3dqdm9mZ2NnZHd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4MjI3OTksImV4cCI6MjA3MjM5ODc5OX0.NqgKif1QO3vtigZ9eWRc8JuJLCw6JoeRIcqWwzXCIQs';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ===== STATE ===== */
-let LEADS = []; // lista e lead-eve nga DB
-let COMMENTS = {}; // cache: lead_id -> array updates
-let COUNTS = new Map(); // lead_id -> comments count
-let CURRENT_ID = null; // lead i hapur në modal
+let LEADS = [];              // lista e lead-eve nga DB
+let COMMENTS = {};           // cache: lead_id -> array updates
+let COUNTS = new Map();      // lead_id -> comments count
+let CURRENT_ID = null;       // lead i hapur në modal
 const EL = sel => document.querySelector(sel);
 const ESC = s => (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;', "'":'&#39;' }[m]));
 
