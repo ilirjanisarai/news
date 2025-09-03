@@ -9,93 +9,59 @@
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
 <style>
   :root{
-    --brand:#2563eb; --brand-2:#1d4ed8;
-    --ok:#16a34a; --warn:#d97706; --bad:#b91c1c;
-    --text:#0b1220; --muted:#6b7280;
-    --line:#e5e7eb; --line-2:#eef2f7;
-    --surface:#fff; --surface-2:#f8fafc; --surface-3:#f1f5f9;
-    --shadow:0 10px 24px rgba(2,8,23,.08);
-    --shadow-lg:0 18px 40px rgba(2,8,23,.12);
-    --radius:14px;
+    --brand:#2563eb; --brand-2:#1d4ed8; --ok:#16a34a; --warn:#d97706; --bad:#b91c1c;
+    --text:#0b1220; --muted:#6b7280; --line:#e5e7eb; --surface:#ffffff; --surface-2:#f8fafc;
+    --shadow:0 12px 28px rgba(2,8,23,.08); --radius:14px;
   }
   @media (prefers-color-scheme: dark){
-    :root{
-      --text:#e5e7eb; --muted:#9ca3af;
-      --line:#1f2937; --line-2:#111827;
-      --surface:#0b1220; --surface-2:#0b1220; --surface-3:#0a0f18;
-      --shadow:0 12px 28px rgba(0,0,0,.38);
-      --shadow-lg:0 18px 44px rgba(0,0,0,.46);
-    }
+    :root{ --text:#e5e7eb; --muted:#9ca3af; --line:#1f2937; --surface:#111827; --surface-2:#0b1220; --shadow:0 18px 36px rgba(0,0,0,.38); }
   }
   *{box-sizing:border-box}
   body{
-    margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Arial;
-    color:var(--text);
+    margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Arial; color:var(--text);
     background:
-      radial-gradient(800px 360px at -10% -20%, rgba(37,99,235,.12), transparent 60%),
+      radial-gradient(800px 400px at -10% -10%, rgba(37,99,235,.10), transparent 60%),
       linear-gradient(160deg,#f7fbff 0%,#f5f7fb 100%);
   }
   header{
-    position:sticky; top:0; z-index:20;
+    position:sticky; top:0; z-index:10;
     background:linear-gradient(120deg,rgba(37,99,235,.10),rgba(37,99,235,.08));
-    border-bottom:1px solid var(--line);
-    backdrop-filter:blur(8px);
+    border-bottom:1px solid var(--line); backdrop-filter:blur(8px)
   }
   .wrap{max-width:1200px; margin:0 auto; padding:16px}
-  h1{margin:0; font-size:20px; font-weight:800; letter-spacing:.2px}
+  h1{margin:0; font-size:20px; font-weight:800}
   .grid{display:grid; gap:14px}
   .two{grid-template-columns:1fr}
   .card{
-    background:var(--surface);
-    border:1px solid var(--line);
-    border-radius:var(--radius);
-    box-shadow:var(--shadow);
-    padding:16px;
+    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
+    box-shadow:var(--shadow); padding:14px
   }
-  .card h2{margin:0 0 6px 0; font-size:16px}
   label{font-weight:800; font-size:12px; color:var(--muted)}
   input,select,textarea{
-    width:100%; padding:10px 12px; border:1px solid var(--line);
-    border-radius:10px; background:var(--surface-2); outline:none;
-    transition:border-color .15s, box-shadow .15s, background .15s;
+    width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--surface-2);
+    outline:none; transition: box-shadow .15s, border-color .15s;
   }
-  input:focus,select:focus,textarea:focus{
-    border-color:var(--brand);
-    box-shadow:0 0 0 3px rgba(37,99,235,.15);
-    background:var(--surface);
-  }
-  textarea{min-height:90px}
+  input:focus,select:focus,textarea:focus{ box-shadow:0 0 0 3px rgba(37,99,235,.15); border-color:#bfdbfe }
+  textarea{min-height:88px}
   .row{display:grid; grid-template-columns:repeat(4,1fr); gap:10px}
   .row-3{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
   .row-2{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
-
   .btn{
-    display:inline-flex; align-items:center; gap:8px;
-    border:1px solid var(--line); border-radius:10px;
-    padding:10px 12px; cursor:pointer; background:var(--surface);
-    font-weight:800; transition:transform .12s, filter .12s, box-shadow .12s;
+    display:inline-flex; align-items:center; gap:8px; border:1px solid var(--line); border-radius:12px;
+    padding:10px 14px; cursor:pointer; background:var(--surface); font-weight:800;
+    transition: transform .12s, filter .12s, box-shadow .12s;
   }
-  .btn:hover{ transform:translateY(-1px); box-shadow:var(--shadow) }
-  .btn.primary{
-    background:linear-gradient(180deg,var(--brand),var(--brand-2));
-    color:#fff; border-color:transparent; box-shadow:var(--shadow-lg)
-  }
+  .btn:hover{ transform:translateY(-1px) }
+  .btn:disabled{ opacity:.6; cursor:not-allowed }
+  .btn.primary{background:linear-gradient(180deg,var(--brand),var(--brand-2)); color:#fff; border-color:transparent}
   .btn.ok{background:linear-gradient(180deg,var(--ok),#15803d); color:#fff; border-color:transparent}
   .btn.warn{background:linear-gradient(180deg,var(--warn),#b45309); color:#fff; border-color:transparent}
   .btn.bad{background:linear-gradient(180deg,var(--bad),#7f1d1d); color:#fff; border-color:transparent}
-
-  .toolbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
-  .toolbar .muted{font-size:12px}
-  .chip{
-    display:inline-flex; align-items:center; gap:6px; padding:6px 10px;
-    border:1px solid var(--line); border-radius:999px; background:var(--surface-3);
-    font-size:12px; color:var(--muted);
-  }
-
-  table{width:100%; border-collapse:separate; border-spacing:0; overflow:hidden}
+  .toolbar{display:flex; gap:10px; flex-wrap:wrap}
+  table{width:100%; border-collapse:separate; border-spacing:0}
   th,td{padding:10px 12px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; font-size:14px}
-  th{font-size:12px; color:var(--muted); background:linear-gradient(180deg,rgba(0,0,0,.02),transparent)}
-  tr:hover td{background:rgba(37,99,235,.04)}
+  th{font-size:12px; color:var(--muted)}
+  tr:hover td{background:rgba(37,99,235,.05)}
   .pill{display:inline-flex; align-items:center; gap:6px; padding:3px 8px; border-radius:999px; font-size:12px; border:1px solid var(--line); background:#eef2ff; color:#1d4ed8}
   .pill.ok{background:#dcfce7; color:#166534}
   .pill.bad{background:#fee2e2; color:#7f1d1d}
@@ -107,38 +73,25 @@
   .hide{display:none}
   #loading{display:none; align-items:center; gap:8px; font-weight:800}
 
-  /* ===== Overlay Auth (VISIBLE by default) ===== */
-  #auth{
-    position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
-    background:rgba(0,0,0,.08); backdrop-filter:blur(4px); z-index:9999
-  }
+  /* ===== Overlay Auth ===== */
+  #auth{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.06);backdrop-filter:blur(4px);z-index:9999}
   #auth .panel{
     width:380px; max-width:94%; background:var(--surface); border:1px solid var(--line);
-    border-radius:16px; box-shadow:var(--shadow-lg); padding:18px
+    border-radius:16px; box-shadow:var(--shadow); padding:18px
   }
+  #auth .panel h3{margin:0 0 8px 0; font-size:18px; font-weight:800}
 
   /* ===== Modal (Faqja e Biznesit) ===== */
   .modal{position:fixed; inset:0; background:rgba(0,0,0,.55); display:none; align-items:center; justify-content:center; padding:18px; z-index:1000}
-  .panel{
-    max-width:920px; width:100%; background:var(--surface); border:1px solid var(--line);
-    border-radius:18px; box-shadow:var(--shadow-lg); display:flex; flex-direction:column; max-height:90vh
+  .panel.modal-panel{
+    max-width:980px; width:100%; background:var(--surface); border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow);
+    display:flex; flex-direction:column; max-height:90vh
   }
-  .panel .head{
-    position:sticky; top:0; background:var(--surface); border-bottom:1px solid var(--line);
-    padding:14px; display:flex; align-items:center; justify-content:space-between; gap:10px; z-index:1
-  }
+  .panel .head{position:sticky; top:0; background:var(--surface); border-bottom:1px solid var(--line); padding:14px; display:flex; align-items:center; justify-content:space-between; gap:8px; z-index:1}
   .panel .body{padding:14px; overflow:auto}
   .flex{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
   .right{display:flex; gap:8px; justify-content:flex-end}
   .nowrap{white-space:nowrap}
-
-  @media (max-width: 980px){
-    .row{grid-template-columns:repeat(2,1fr)}
-    .row-3{grid-template-columns:repeat(2,1fr)}
-  }
-  @media (max-width: 640px){
-    .row,.row-2,.row-3{grid-template-columns:1fr}
-  }
 </style>
 </head>
 <body>
@@ -146,23 +99,22 @@
   <div class="wrap" style="display:flex; align-items:center; justify-content:space-between; gap:12px">
     <div>
       <h1><i class="fa-solid fa-address-book"></i> ADC · Mini CRM</h1>
-      <div class="muted">Kërkon login · Shfaqet vetëm për përdorues të identifikuar</div>
+      <div class="muted">Kërkon login · Shfaqen për këdo të loguar</div>
     </div>
     <div class="toolbar">
-      <span id="user_slot" class="chip"></span>
       <div id="loading" class="muted"><i class="fa-solid fa-spinner fa-spin"></i> Duke ngarkuar…</div>
-      <button class="btn" onclick="refreshLeads()" title="Rifresko"><i class="fa-solid fa-rotate"></i></button>
-      <button class="btn" onclick="downloadCSV()" title="Eksport CSV"><i class="fa-solid fa-file-export"></i></button>
-      <button class="btn" onclick="openAuth()" title="Hyr"><i class="fa-solid fa-right-to-bracket"></i> Hyr</button>
-      <button class="btn" onclick="signOut()" title="Dil"><i class="fa-solid fa-right-from-bracket"></i> Dil</button>
+      <button class="btn" onclick="refreshLeads()"><i class="fa-solid fa-rotate"></i> Rifresko</button>
+      <button class="btn" onclick="downloadCSV()"><i class="fa-solid fa-file-export"></i> Eksport CSV</button>
+      <span id="user_slot" class="muted"></span>
+      <button class="btn" onclick="signOut()"><i class="fa-solid fa-right-from-bracket"></i> Dil</button>
     </div>
   </div>
 </header>
 
 <main class="wrap grid two" id="app">
-  <!-- SHTO LEAD -->
+  <!-- SHTO LEAD (SIPËR) -->
   <section class="card">
-    <div class="flex" style="justify-content:space-between;align-items:end">
+    <div class="flex" style="justify-content:space-between">
       <h2 style="margin:0;font-size:16px">Shto lead</h2>
       <div class="muted">Fusha <strong>NIPT</strong>, <strong>Industry</strong> dhe <strong>Activity</strong> janë opsionale.</div>
     </div>
@@ -249,7 +201,7 @@
     </div>
   </section>
 
-  <!-- LISTA & FILTRA -->
+  <!-- LISTA & FILTRA (POSHTË) -->
   <section class="card">
     <div class="flex" style="justify-content:space-between">
       <h2 style="margin:0;font-size:16px">Leads</h2>
@@ -319,7 +271,7 @@
 
 <!-- MODAL: Faqja e biznesit / komente & aktivitet -->
 <div class="modal" id="modal">
-  <div class="panel">
+  <div class="panel modal-panel">
     <div class="head">
       <div>
         <h3 id="m_title" style="margin:0"></h3>
@@ -419,192 +371,164 @@
 <!-- ===== Overlay: Supabase Auth ===== -->
 <div id="auth">
   <div class="panel">
-    <h3 style="margin:0 0 8px 0;font-size:18px;font-weight:800">Hyrje në Mini-CRM</h3>
-    <div style="color:var(--muted);font-size:12px;margin-bottom:10px">Identifikohu me email dhe fjalëkalim (Supabase).</div>
-    <input id="auth_email" type="email" placeholder="email" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px">
-    <input id="auth_pwd" type="password" placeholder="fjalëkalim" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin-bottom:10px">
+    <h3>Hyrje në Mini-CRM</h3>
+    <div style="color:var(--muted);font-size:12px;margin-bottom:10px">Identifikohu me email dhe fjalëkalim.</div>
+    <input id="auth_email" type="email" placeholder="email" style="width:100%;margin-bottom:8px">
+    <input id="auth_pwd" type="password" placeholder="fjalëkalim" style="width:100%;margin-bottom:10px">
+    <div id="auth_msg" style="color:#b91c1c;font-size:12px;margin-bottom:10px"></div>
     <div style="display:flex;gap:8px;justify-content:flex-end">
-      <button class="btn" onclick="signIn()">Hyr</button>
+      <button class="btn" onclick="openAuth()">Hap</button>
       <button class="btn" onclick="signUp()">Krijo</button>
+      <button class="btn primary" onclick="signIn()">Hyr</button>
     </div>
-    <div id="auth_msg" style="color:#b91c1c;font-size:12px;margin-top:8px"></div>
   </div>
 </div>
 
 <!-- Supabase SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
 <script>
-/* ==== SUPABASE CONFIG ==== */
+/* ===== KONFIGURIM SUPABASE (me auth të qëndrueshme) ===== */
 const SUPABASE_URL = 'https://cpkyagcuowjvofgcgdwx.supabase.co';
 const SUPABASE_ANON_KEY =
   'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwa3lhZ2N1b3dqdm9mZ2NnZHd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4MjI3OTksImV4cCI6MjA3MjM5ODc5OX0.NqgKif1QO3vtigZ9eWRc8JuJLCw6JoeRIcqWwzXCIQs';
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: { persistSession:true, autoRefreshToken:true, detectSessionInUrl:true, storage: window.localStorage }
+  auth: {
+    persistSession: true,
+    autoRefreshToken: true,
+    detectSessionInUrl: false,
+    storage: window.localStorage
+  },
+  global: { headers: { 'x-application-name': 'adc-mini-crm' } }
 });
 
-/* ==== STATE & HELPERS ==== */
+/* ===== STATE ===== */
 let LEADS = [];
 let COMMENTS = {};
 let COUNTS = new Map();
 let CURRENT_ID = null;
-
-const EL = s => document.querySelector(s);
+const EL = sel => document.querySelector(sel);
 const ESC = s => (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;', "'":'&#39;' }[m]));
-function openAuth(){ EL('#auth').style.display='flex'; EL('#auth_msg').textContent=''; }
+
+/* ===== UTIL ===== */
 function todayStr(d=new Date()){ const z=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate()); }
 function addDays(date,days){ const d=new Date(date); d.setDate(d.getDate()+days); return d; }
 
-/* ==== AUTH (forcuar) ==== */
+/* ===== AUTH UI HELPERS ===== */
+function showAuth(show){ EL('#auth').style.display = show ? 'flex' : 'none'; }
+function setUserEmail(email){ const slot = EL('#user_slot'); if (slot) slot.textContent = email ? ('• ' + email) : ''; }
+function openAuth(){ showAuth(true); EL('#auth_msg').textContent=''; }
+
+/* ===== SESSION CHECK ===== */
 async function ensureAuthUI(){
-  const { data: { session } } = await sb.auth.getSession();
-  if(session?.user){
-    EL('#auth').style.display='none';
-    try{
-      const { data:{ user } } = await sb.auth.getUser();
-      EL('#user_slot').textContent = user?.email ? ('• ' + user.email) : '';
-      console.log('[auth] logged in as', user?.email);
-    }catch(_){}
+  const { data:{ session } } = await sb.auth.getSession();
+  if (session?.user) {
+    showAuth(false);
+    try { const { data:{ user } } = await sb.auth.getUser(); setUserEmail(user?.email || ''); }
+    catch { setUserEmail(''); }
     return true;
   } else {
-    EL('#auth').style.display='flex';
-    EL('#user_slot').textContent = '';
-    console.log('[auth] no session -> showing auth overlay');
-    return false;
+    showAuth(true); setUserEmail(''); return false;
   }
 }
+
+/* ===== LOGIN / SIGNUP / LOGOUT ===== */
 async function signIn(){
   const email = EL('#auth_email').value.trim();
   const password = EL('#auth_pwd').value;
-  EL('#auth_msg').textContent = '';
-  const { error } = await sb.auth.signInWithPassword({ email, password });
-  if(error){
-    EL('#auth_msg').textContent = error.message || 'Login dështoi';
-    console.error('[signIn]', error);
-  }else{
-    await ensureAuthUI();
+  const msg = EL('#auth_msg'); msg.textContent='';
+  const btns = EL('#auth').querySelectorAll('button'); btns.forEach(b=>b.disabled=true);
+
+  try{
+    const { error } = await sb.auth.signInWithPassword({ email, password });
+    if (error){ msg.textContent = error.message || 'Login dështoi'; return; }
+
+    const ok = await ensureAuthUI();
+    if (!ok){ msg.textContent = 'Login u krye, por sesioni nuk u ruajt. Kontrollo Cookies/HTTPS.'; return; }
+
+    // Smoke test për SELECT (nëse bie, është RLS/kolonat)
+    const probe = await sb.from('leads').select('id').limit(1);
+    if (probe.error){ alert('Hyrja OK, por leximi i DB dështoi: ' + (probe.error.message || 'RLS/kolona')); }
+
     await refreshLeads();
+  }catch(e){
+    console.error('[signIn exception]', e);
+    msg.textContent = 'Gabim i papritur gjatë login.';
+  }finally{
+    btns.forEach(b=>b.disabled=false);
   }
 }
 async function signUp(){
   const email = EL('#auth_email').value.trim();
   const password = EL('#auth_pwd').value;
+  const msg = EL('#auth_msg'); msg.textContent='';
   const { error } = await sb.auth.signUp({ email, password });
-  EL('#auth_msg').textContent = error ? (error.message || 'Sign up dështoi') : 'U krijua. Kontrollo email-in nëse kërkohet verifikim.';
-  if(!error){ console.log('[signUp] OK for', email); }
+  msg.textContent = error ? (error.message || 'Sign up dështoi') : 'U krijua. Nëse kërkohet verifikim, kontrollo email-in.';
 }
 async function signOut(){
   await sb.auth.signOut();
-  EL('#user_slot').textContent='';
-  try{ localStorage.removeItem('sb-' + new URL(SUPABASE_URL).hostname + '-auth-token'); }catch(_){}
-  await ensureAuthUI();
-  LEADS = []; COMMENTS = {}; COUNTS = new Map(); render();
+  setUserEmail('');
+  LEADS=[]; COMMENTS={}; COUNTS=new Map(); render();
+  showAuth(true);
 }
-sb.auth.onAuthStateChange(async (_evt, session)=>{
-  console.log('[onAuthStateChange]', _evt, !!session);
-  await ensureAuthUI();
-  if(session?.user){ await refreshLeads(); }
+sb.auth.onAuthStateChange(async (_evt, session) => {
+  if (session?.user){ await ensureAuthUI(); await refreshLeads(); }
+  else { showAuth(true); setUserEmail(''); }
 });
 
-/* ==== COUNTS view ==== */
+/* ===== COUNTS ===== */
 async function fetchCounts(){
-  try{
-    const { data, error } = await sb.from('lead_comment_counts').select('*');
-    if(error){ console.warn('[counts]', error); return new Map(); }
-    const map = new Map();
-    (data||[]).forEach(r => map.set(r.lead_id, r.comments||0));
-    return map;
-  }catch(err){
-    console.warn('[counts: exception]', err);
-    return new Map();
-  }
+  const res = await sb.from('lead_comment_counts').select('*');
+  if (res.error){ console.warn('[counts]', res.error); return new Map(); }
+  const map = new Map();
+  (res.data||[]).forEach(r => map.set(r.lead_id, r.comments||0));
+  return map;
 }
 
-/* ==== LEADS ==== */
+/* ===== LEADS (fallback i sigurt) ===== */
 async function fetchLeads(){
-  try{
-    // Renditje me created_at (fallback-friendly)
-    let { data, error } = await sb
-      .from('leads')
-      .select('id, created_at, created_at_ts, company, contact, phone, email, source, call_status, answer_outcome, next_follow_up, meeting_status, meeting_date, field_agent, nipt, industry, activity')
-      .order('created_at', { ascending:false });
-    if(!error && Array.isArray(data)) return data;
+  // A) Renditje me created_at (ekziston)
+  let res = await sb.from('leads').select('id, created_at, created_at_ts, company, contact, phone, email, source, call_status, answer_outcome, next_follow_up, meeting_status, meeting_date, field_agent, nipt, industry, activity').order('created_at',{ascending:false});
+  if (!res.error) return res.data || [];
 
-    console.warn('[fetchLeads A]', error);
-    ({ data, error } = await sb
-      .from('leads')
-      .select('*')
-      .order('created_at_ts', { ascending:false }));
-    if(!error && Array.isArray(data)) return data;
-
-    console.warn('[fetchLeads B]', error);
-    ({ data, error } = await sb.from('leads').select('*'));
-    if(error){
-      console.error('[fetchLeads C failed]', error);
-      alert('Nuk u lexuan lead-et nga DB.\n'+(error.message || 'Kontrollo RLS (SELECT) dhe GRANT.'));
-      return [];
-    }
-    return data || [];
-  }catch(err){
-    console.error('[fetchLeads exception]', err);
-    alert('Gabim gjatë leximit të lead-eve.');
+  console.warn('[fetchLeads A]', res.error);
+  // B) Pa renditje
+  res = await sb.from('leads').select('id, created_at, created_at_ts, company, contact, phone, email, source, call_status, answer_outcome, next_follow_up, meeting_status, meeting_date, field_agent, nipt, industry, activity');
+  if (res.error){
+    console.error('[fetchLeads B failed]', res.error);
+    alert('Nuk u lexuan lead-et nga DB: ' + (res.error.message || 'RLS/kolonat'));
     return [];
   }
+  return res.data || [];
 }
 async function insertLead(obj){
-  try{
-    const { error } = await sb.from('leads').insert([obj]);
-    if(error) throw error;
-    try{
-      await sb.from('lead_updates').insert([{ lead_id: obj.id, kind:'create', comment:(obj._prime_note||null) }]);
-    }catch(e){ console.warn('[lead_updates create] skipped:', e?.message || e); }
-  }catch(err){
-    console.error('[insertLead]', err);
-    alert('Shtimi në DB dështoi. Kontrollo RLS (INSERT) dhe kolonat.');
-  }
+  const { error } = await sb.from('leads').insert([obj]);
+  if (error){ console.error('[insertLead]', error); alert('Shtimi në DB dështoi (RLS/kolonat).'); return; }
+  // log "create" (opsional)
+  try{ await sb.from('lead_updates').insert([{ lead_id: obj.id, kind:'create', comment:(obj._prime_note||null) }]); }catch(e){ /* ok */ }
 }
 async function updateLeadFields(id, fields){
-  try{
-    const { error } = await sb.from('leads').update(fields).eq('id', id);
-    if(error) throw error;
-  }catch(err){
-    console.warn('[updateLeadFields]', err);
-    alert('UPDATE dështoi. Vendos RLS për UPDATE te leads.');
-  }
+  const { error } = await sb.from('leads').update(fields).eq('id', id);
+  if (error){ console.warn('[updateLeadFields]', error); alert('UPDATE dështoi (RLS).'); }
 }
-
-/* ==== UPDATES/COMMENTS ==== */
+/* ===== UPDATES/COMMENTS ===== */
 async function fetchComments(lead_id){
-  try{
-    const { data, error } = await sb.from('lead_updates').select('*').eq('lead_id', lead_id).order('ts',{ascending:false});
-    if(error){ console.warn('[fetchComments]', error); return []; }
-    return data||[];
-  }catch(err){
-    console.warn('[fetchComments exception]', err);
-    return [];
-  }
+  const { data, error } = await sb.from('lead_updates').select('*').eq('lead_id', lead_id).order('ts',{ascending:false});
+  if (error){ console.warn('[fetchComments]', error); return []; }
+  return data||[];
 }
 async function insertUpdate(lead_id, payload){
-  try{
-    const row = Object.assign({ lead_id, kind:'update' }, payload);
-    const { error } = await sb.from('lead_updates').insert([row]);
-    if(error) throw error;
-  }catch(err){
-    console.warn('[insertUpdate]', err);
-    alert('Nuk u ruajt përditësimi (lead_updates).');
-  }
+  const row = Object.assign({ lead_id, kind:'update' }, payload);
+  const { error } = await sb.from('lead_updates').insert([row]);
+  if (error){ console.warn('[insertUpdate]', error); alert('Nuk u ruajt përditësimi.'); }
 }
 async function insertComment(lead_id, text){
-  try{
-    const { error } = await sb.from('lead_updates').insert([{ lead_id, kind:'comment', comment:text }]);
-    if(error) throw error;
-  }catch(err){
-    console.warn('[insertComment]', err);
-    alert('Nuk u ruajt komenti (lead_updates).');
-  }
+  const { error } = await sb.from('lead_updates').insert([{ lead_id, kind:'comment', comment:text }]);
+  if (error){ console.warn('[insertComment]', error); alert('Nuk u ruajt komenti.'); }
 }
 
-/* ==== BADGES ==== */
+/* ===== BADGES ===== */
 function badgeCall(s){
   if(s==='Answered') return `<span class="pill ok"><i class="fa-solid fa-phone"></i> ${s}</span>`;
   if(s==='Not answered') return `<span class="pill warn"><i class="fa-solid fa-phone-slash"></i> ${s}</span>`;
@@ -625,14 +549,14 @@ function badgeMeeting(s){
   return `<span class="pill">${ESC(s||'—')}</span>`;
 }
 
-/* ==== RENDER LIST ==== */
+/* ===== RENDER LIST ===== */
 function render(){
-  const q = (EL('#q')?.value || '').toLowerCase().trim();
-  const fs = EL('#flt_source')?.value || '';
-  const fc = EL('#flt_call')?.value || '';
-  const fr = EL('#flt_result')?.value || '';
-  const fm = EL('#flt_meeting')?.value || '';
-  const sort = EL('#sortBy')?.value || 'created_desc';
+  const q = (EL('#q')?.value||'').toLowerCase().trim();
+  const fs = EL('#flt_source')?.value||'';
+  const fc = EL('#flt_call')?.value||'';
+  const fr = EL('#flt_result')?.value||'';
+  const fm = EL('#flt_meeting')?.value||'';
+  const sort = EL('#sortBy')?.value||'created_desc';
 
   let arr = LEADS.filter(x=>{
     const hay = (x.company+' '+(x.contact||'')+' '+(x.phone||'')+' '+(x.email||'')).toLowerCase();
@@ -645,7 +569,7 @@ function render(){
   });
 
   if(sort==='created_desc') arr.sort((a,b)=> (b.created_at_ts||b.created_at||'').localeCompare(a.created_at_ts||a.created_at||''));
-  else if(sort==='created_asc') arr.sort((a,b)=> (a.created_at_ts||a.created_at||'').localeCompare(b.created_at_ts||b.created_at||'')); 
+  else if(sort==='created_asc') arr.sort((a,b)=> (a.created_at_ts||a.created_at||'').localeCompare(b.created_at_ts||b.created_at||''));
   else if(sort==='company_asc') arr.sort((a,b)=> (a.company||'').localeCompare(b.company||'')); 
   else if(sort==='company_desc') arr.sort((a,b)=> (b.company||'').localeCompare(a.company||'')); 
   else if(sort==='next_desc') arr.sort((a,b)=> (a.next_follow_up||'9999-12-31').localeCompare(b.next_follow_up||'9999-12-31'));
@@ -676,10 +600,9 @@ function render(){
   }).join('') || `<tr><td colspan="10" class="muted">S'ka të dhëna.</td></tr>`;
 }
 
-/* ==== ADD LEAD ==== */
+/* ===== ADD LEAD ===== */
 function clearForm(){
-  ['f_company','f_contact','f_phone','f_email','f_nipt','f_industry','f_activity','f_field_agent','f_meeting_date','f_notes']
-    .forEach(id=>{ const el=EL('#'+id); if(el) el.value=''; });
+  ['f_company','f_contact','f_phone','f_email','f_nipt','f_industry','f_activity','f_field_agent','f_meeting_date','f_notes'].forEach(id=> EL('#'+id).value='');
   EL('#f_source').value='QKB';
   EL('#f_call_status').value='Not answered';
   EL('#f_answer_outcome').value='';
@@ -688,29 +611,24 @@ async function addLead(){
   const obj = {
     id: 'L'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4),
     created_at: todayStr(),
-    company: (EL('#f_company').value||'').trim(),
-    contact: (EL('#f_contact').value||'').trim(),
-    phone: (EL('#f_phone').value||'').trim(),
-    email: (EL('#f_email').value||'').trim(),
-    nipt: (EL('#f_nipt').value||'').trim() || null,
-    industry: (EL('#f_industry').value||'').trim() || null,
-    activity: (EL('#f_activity').value||'').trim() || null,
+    company: EL('#f_company').value.trim(),
+    contact: EL('#f_contact').value.trim(),
+    phone: EL('#f_phone').value.trim(),
+    email: EL('#f_email').value.trim(),
+    nipt: EL('#f_nipt').value.trim() || null,
+    industry: EL('#f_industry').value.trim() || null,
+    activity: EL('#f_activity').value.trim() || null,
     source: EL('#f_source').value,
     call_status: EL('#f_call_status').value,
-    answer_outcome: (EL('#f_answer_outcome').value||'') || null,
+    answer_outcome: EL('#f_answer_outcome').value || null,
     next_follow_up: null,
     meeting_status: null,
-    meeting_date: (EL('#f_meeting_date').value||'') || null,
-    field_agent: (EL('#f_field_agent').value||'').trim() || null,
-    _prime_note: (EL('#f_notes').value||'').trim() || null
+    meeting_date: EL('#f_meeting_date').value || null,
+    field_agent: EL('#f_field_agent').value.trim() || null,
+    _prime_note: EL('#f_notes').value.trim() || null
   };
-  if(!obj.company || !obj.phone){
-    alert('Kompania dhe telefoni janë të detyrueshëm.');
-    return;
-  }
-  if(obj.answer_outcome==='Do ta eskaloj' || obj.answer_outcome==='Do të mendohet'){
-    obj.next_follow_up = todayStr(addDays(new Date(),3));
-  }
+  if(!obj.company || !obj.phone){ alert('Kompania dhe telefoni janë të detyrueshëm.'); return; }
+  if(obj.answer_outcome==='Do ta eskaloj' || obj.answer_outcome==='Do të mendohet'){ obj.next_follow_up = todayStr(addDays(new Date(),3)); }
   if(obj.meeting_date) obj.meeting_status = 'Pending';
 
   EL('#loading').style.display='inline-flex';
@@ -719,14 +637,14 @@ async function addLead(){
     await refreshLeads();
     clearForm();
   }catch(err){
-    console.error('[addLead outer]', err);
+    console.error('[addLead]', err);
     alert('Shtimi dështoi.');
   }finally{
     EL('#loading').style.display='none';
   }
 }
 
-/* ==== MODAL ==== */
+/* ===== MODAL (Faqja e biznesit) ===== */
 async function openModal(id){
   CURRENT_ID = id;
   const x = LEADS.find(i=>i.id===id); if(!x) return;
@@ -771,7 +689,7 @@ function renderTimeline(id){
 }
 function closeModal(){ EL('#modal').style.display='none'; CURRENT_ID=null; }
 
-/* ==== SAVE & QUICK FOLLOW ==== */
+/* ===== SAVE & QUICK FOLLOW ===== */
 async function saveModal(){
   const x = LEADS.find(i=>i.id===CURRENT_ID); if(!x) return;
 
@@ -779,13 +697,13 @@ async function saveModal(){
   const nextFU = EL('#m_next').value || null;
   const mStatus = EL('#m_meeting_status').value || null;
   const mDate = EL('#m_meeting_date').value || null;
-  const agent = (EL('#m_agent').value||'').trim() || null;
-  const email = (EL('#m_email').value||'').trim() || null;
-  const phone = (EL('#m_phone').value||'').trim() || null;
-  const nipt = (EL('#m_nipt').value||'').trim() || null;
-  const industry = (EL('#m_industry').value||'').trim() || null;
-  const activity = (EL('#m_activity').value||'').trim() || null;
-  const comment = (EL('#m_comment').value||'').trim();
+  const agent = EL('#m_agent').value.trim() || null;
+  const email = EL('#m_email').value.trim() || null;
+  const phone = EL('#m_phone').value.trim() || null;
+  const nipt = EL('#m_nipt').value.trim() || null;
+  const industry = EL('#m_industry').value.trim() || null;
+  const activity = EL('#m_activity').value.trim() || null;
+  const comment = EL('#m_comment').value.trim();
 
   const autoFU = (!nextFU && (newResult==='Do ta eskaloj' || newResult==='Do të mendohet')) ? todayStr(addDays(new Date(),3)) : null;
 
@@ -841,7 +759,7 @@ async function quickFollow(id){
   }
 }
 
-/* ==== EMAIL & ICS ==== */
+/* ===== EMAIL & ICS ===== */
 function sendEmailTemplate(){
   const x = LEADS.find(i=>i.id===CURRENT_ID); if(!x) return;
   const to = x.email || '';
@@ -849,7 +767,7 @@ function sendEmailTemplate(){
   const body = encodeURIComponent(
 `Përshëndetje ${x.contact||'—'},
 
-Ju falënderojmë për kohën në telefon. Siç u dakorduam, po ju përcjellim informacionin për shërbimet tona.
+Ju falënderojmë për kohën në telefon. Siç u dakorduam, po ju përcjellim informacionin për shërbimet tona. 
 Do të rikthehemi me një telefonatë follow-up brenda 3 ditësh (ose sipas mundësive tuaja).
 
 — Detaje:
@@ -893,7 +811,7 @@ function downloadICSMeeting(){
   makeICS({ title:`Takim · ${x.company}`, description:`Takim me ${x.company}\nKontakt: ${x.contact||''}\nTel: ${x.phone||''}\nAgjent: ${x.field_agent||''}`, date:x.meeting_date });
 }
 
-/* ==== CSV ==== */
+/* ===== CSV ===== */
 function downloadCSV(){
   const cols = ["id","created_at","company","nipt","industry","activity","contact","phone","email","source","call_status","answer_outcome","next_follow_up","meeting_status","meeting_date","field_agent"];
   const lines = [cols.join(',')];
@@ -906,7 +824,7 @@ function downloadCSV(){
   const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='adc_leads.csv'; a.click();
 }
 
-/* ==== DATA FLOW ==== */
+/* ===== DATA FLOW ===== */
 async function refreshLeads(){
   EL('#loading').style.display='inline-flex';
   try{
@@ -922,13 +840,10 @@ async function refreshLeads(){
   }
 }
 
-/* ==== INIT ==== */
+/* ===== INIT ===== */
 document.addEventListener('DOMContentLoaded', async ()=>{
-  await ensureAuthUI();
-  try{
-    const { data:{ session } } = await sb.auth.getSession();
-    if(session?.user){ await refreshLeads(); }
-  }catch(e){ console.warn(e); }
+  const ok = await ensureAuthUI();
+  if (ok) await refreshLeads();
 });
 </script>
 </body>
