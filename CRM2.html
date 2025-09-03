@@ -38,7 +38,7 @@
   .toolbar{display:flex; gap:10px; flex-wrap:wrap}
   table{width:100%; border-collapse:separate; border-spacing:0}
   th,td{padding:10px 12px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; font-size:14px}
-  th{font-size:12px; color:var(--muted')}
+  th{font-size:12px; color:var(--muted)}
   tr:hover td{background:rgba(37,99,235,.05)}
   .pill{display:inline-flex; align-items:center; gap:6px; padding:3px 8px; border-radius:999px; font-size:12px; border:1px solid var(--line); background:#eef2ff; color:#1d4ed8}
   .pill.ok{background:#dcfce7; color:#166534}
@@ -414,52 +414,101 @@ sb.auth.onAuthStateChange(async (_evt, session) => {
 
 /* ===== DB: COUNTS (view lead_comment_counts) ===== */
 async function fetchCounts(){
-  const { data, error } = await sb.from('lead_comment_counts').select('*');
-  if(error){ console.warn('[counts]', error); return new Map(); }
-  const map = new Map();
-  (data||[]).forEach(r => map.set(r.lead_id, r.comments||0));
-  return map;
+  try{
+    const { data, error } = await sb.from('lead_comment_counts').select('*');
+    if(error){ console.warn('[counts]', error); return new Map(); }
+    const map = new Map();
+    (data||[]).forEach(r => map.set(r.lead_id, r.comments||0));
+    return map;
+  }catch(err){
+    console.warn('[counts: exception]', err);
+    return new Map();
+  }
 }
 
-/* ===== DB: LEADS ===== */
+/* ===== DB: LEADS (me fallback) ===== */
 async function fetchLeads(){
-  EL('#loading').style.display='inline-flex';
-  const { data, error } = await sb
-    .from('leads')
-    .select('*')
-    .order('created_at_ts', { ascending:false });
-  EL('#loading').style.display='none';
-  if(error){
-    console.warn(error);
-    alert('Nuk u lexuan lead-et nga DB.');
+  try{
+    // Prova 1: renditje me created_at_ts (nëse e ke në DB)
+    let res = await sb.from('leads').select('*').order('created_at_ts', { ascending:false });
+    if(!res.error) return res.data || [];
+
+    console.warn('[fetchLeads: created_at_ts failed]', res.error?.message || res.error);
+
+    // Prova 2: renditje me created_at (skema e vjetër)
+    res = await sb.from('leads').select('*').order('created_at', { ascending:false });
+    if(!res.error) return res.data || [];
+
+    console.warn('[fetchLeads: created_at failed]', res.error?.message || res.error);
+
+    // Prova 3: pa renditje (plan C)
+    res = await sb.from('leads').select('*');
+    if(!res.error) return res.data || [];
+
+    console.error('[fetchLeads: all attempts failed]', res.error?.message || res.error);
+    alert('Nuk u lexuan lead-et nga DB (kontrollo RLS / kolonat).');
+    return [];
+  }catch(err){
+    console.error('[fetchLeads exception]', err);
+    alert('Gabim gjatë leximit të lead-eve.');
     return [];
   }
-  return data||[];
 }
 async function insertLead(obj){
-  const { error } = await sb.from('leads').insert([obj]);
-  if(error){ console.warn(error); alert('Shtimi në DB dështoi. Kontrollo RLS (INSERT).'); return; }
-  await sb.from('lead_updates').insert([{ lead_id: obj.id, kind:'create', comment:(obj._prime_note||null) }]).catch(()=>{});
+  try{
+    const { error } = await sb.from('leads').insert([obj]);
+    if(error) throw error;
+
+    // log "create" (nëse e lejon RLS)
+    try{
+      await sb.from('lead_updates').insert([{ lead_id: obj.id, kind:'create', comment:(obj._prime_note||null) }]);
+    }catch(e){
+      console.warn('[lead_updates create] skipped:', e?.message || e);
+    }
+  }catch(err){
+    console.error('[insertLead]', err);
+    alert('Shtimi në DB dështoi. Kontrollo RLS (INSERT) dhe kolonat.');
+  }
 }
 async function updateLeadFields(id, fields){
-  const { error } = await sb.from('leads').update(fields).eq('id', id);
-  if(error){ console.warn(error); alert('UPDATE dështoi. Vendos RLS për UPDATE te leads.'); }
+  try{
+    const { error } = await sb.from('leads').update(fields).eq('id', id);
+    if(error) throw error;
+  }catch(err){
+    console.warn('[updateLeadFields]', err);
+    alert('UPDATE dështoi. Vendos RLS për UPDATE te leads.');
+  }
 }
 
 /* ===== DB: UPDATES/COMMENTS ===== */
 async function fetchComments(lead_id){
-  const { data, error } = await sb.from('lead_updates').select('*').eq('lead_id', lead_id).order('ts',{ascending:false});
-  if(error){ console.warn(error); return []; }
-  return data||[];
+  try{
+    const { data, error } = await sb.from('lead_updates').select('*').eq('lead_id', lead_id).order('ts',{ascending:false});
+    if(error){ console.warn('[fetchComments]', error); return []; }
+    return data||[];
+  }catch(err){
+    console.warn('[fetchComments exception]', err);
+    return [];
+  }
 }
 async function insertUpdate(lead_id, payload){
-  const row = Object.assign({ lead_id, kind:'update' }, payload);
-  const { error } = await sb.from('lead_updates').insert([row]);
-  if(error){ console.warn(error); alert('Nuk u ruajt përditësimi (lead_updates).'); }
+  try{
+    const row = Object.assign({ lead_id, kind:'update' }, payload);
+    const { error } = await sb.from('lead_updates').insert([row]);
+    if(error) throw error;
+  }catch(err){
+    console.warn('[insertUpdate]', err);
+    alert('Nuk u ruajt përditësimi (lead_updates).');
+  }
 }
 async function insertComment(lead_id, text){
-  const { error } = await sb.from('lead_updates').insert([{ lead_id, kind:'comment', comment:text }]);
-  if(error){ console.warn(error); alert('Nuk u ruajt komenti (lead_updates).'); }
+  try{
+    const { error } = await sb.from('lead_updates').insert([{ lead_id, kind:'comment', comment:text }]);
+    if(error) throw error;
+  }catch(err){
+    console.warn('[insertComment]', err);
+    alert('Nuk u ruajt komenti (lead_updates).');
+  }
 }
 
 /* ===== BADGES ===== */
@@ -502,10 +551,10 @@ function render(){
     return passQ && passS && passC && passR && passM;
   });
 
-  if(sort==='created_desc') arr.sort((a,b)=> (b.created_at_ts||'').localeCompare(a.created_at_ts||''));
-  else if(sort==='created_asc') arr.sort((a,b)=> (a.created_at_ts||'').localeCompare(b.created_at_ts||''));
-  else if(sort==='company_asc') arr.sort((a,b)=> (a.company||'').localeCompare(b.company||''));
-  else if(sort==='company_desc') arr.sort((a,b)=> (b.company||'').localeCompare(a.company||''));
+  if(sort==='created_desc') arr.sort((a,b)=> (b.created_at_ts||b.created_at||'').localeCompare(a.created_at_ts||a.created_at||''));
+  else if(sort==='created_asc') arr.sort((a,b)=> (a.created_at_ts||a.created_at||'').localeCompare(b.created_at_ts||b.created_at||''));
+  else if(sort==='company_asc') arr.sort((a,b)=> (a.company||'').localeCompare(b.company||'')); 
+  else if(sort==='company_desc') arr.sort((a,b)=> (b.company||'').localeCompare(a.company||'')); 
   else if(sort==='next_desc') arr.sort((a,b)=> (a.next_follow_up||'9999-12-31').localeCompare(b.next_follow_up||'9999-12-31'));
 
   EL('#stats').textContent = `${arr.length} lead(e) · total: ${LEADS.length}`;
@@ -534,7 +583,7 @@ function render(){
   }).join('') || `<tr><td colspan="10" class="muted">S'ka të dhëna.</td></tr>`;
 }
 
-/* ===== UI: ADD LEAD ===== */
+/* ===== UI: ADD LEAD (me try/finally) ===== */
 function clearForm(){
   ['f_company','f_contact','f_phone','f_email','f_nipt','f_industry','f_activity','f_field_agent','f_meeting_date','f_notes'].forEach(id=> EL('#'+id).value='');
   EL('#f_source').value='QKB';
@@ -571,10 +620,16 @@ async function addLead(){
   if(obj.meeting_date) obj.meeting_status = 'Pending';
 
   EL('#loading').style.display='inline-flex';
-  await insertLead(obj);
-  await refreshLeads();
-  EL('#loading').style.display='none';
-  clearForm();
+  try{
+    await insertLead(obj);
+    await refreshLeads();
+    clearForm();
+  }catch(err){
+    console.error('[addLead outer]', err);
+    alert('Shtimi dështoi.');
+  }finally{
+    EL('#loading').style.display='none';
+  }
 }
 
 /* ===== MODAL (Faqja e biznesit) ===== */
@@ -644,43 +699,55 @@ async function saveModal(){
   const autoFU = (!nextFU && (newResult==='Do ta eskaloj' || newResult==='Do të mendohet')) ? todayStr(addDays(new Date(),3)) : null;
 
   EL('#loading').style.display='inline-flex';
-  await insertUpdate(x.id, {
-    new_result: newResult,
-    next_follow_up: nextFU || autoFU,
-    meeting_status: mStatus,
-    meeting_date: mDate,
-    field_agent: agent,
-    email: email,
-    comment: comment || null
-  });
-  if(comment){ await insertComment(x.id, comment); }
+  try{
+    await insertUpdate(x.id, {
+      new_result: newResult,
+      next_follow_up: nextFU || autoFU,
+      meeting_status: mStatus,
+      meeting_date: mDate,
+      field_agent: agent,
+      email: email,
+      comment: comment || null
+    });
+    if(comment){ await insertComment(x.id, comment); }
 
-  await updateLeadFields(x.id, {
-    answer_outcome: newResult,
-    next_follow_up: nextFU || autoFU,
-    meeting_status: mStatus,
-    meeting_date: mDate,
-    field_agent: agent,
-    email: email,
-    phone: phone,
-    nipt: nipt,
-    industry: industry,
-    activity: activity
-  });
+    await updateLeadFields(x.id, {
+      answer_outcome: newResult,
+      next_follow_up: nextFU || autoFU,
+      meeting_status: mStatus,
+      meeting_date: mDate,
+      field_agent: agent,
+      email: email,
+      phone: phone,
+      nipt: nipt,
+      industry: industry,
+      activity: activity
+    });
 
-  await refreshLeads();
-  COMMENTS[x.id] = await fetchComments(x.id);
-  renderTimeline(x.id);
-  EL('#loading').style.display='none';
+    await refreshLeads();
+    COMMENTS[x.id] = await fetchComments(x.id);
+    renderTimeline(x.id);
+  }catch(err){
+    console.error('[saveModal]', err);
+    alert('Ruajtja dështoi.');
+  }finally{
+    EL('#loading').style.display='none';
+  }
 }
 async function quickFollow(id){
   const x = LEADS.find(i=>i.id===id); if(!x) return;
   const next = todayStr(addDays(new Date(),3));
   EL('#loading').style.display='inline-flex';
-  await insertUpdate(id, { new_result: x.answer_outcome || null, next_follow_up: next });
-  await updateLeadFields(id, { next_follow_up: next });
-  await refreshLeads();
-  EL('#loading').style.display='none';
+  try{
+    await insertUpdate(id, { new_result: x.answer_outcome || null, next_follow_up: next });
+    await updateLeadFields(id, { next_follow_up: next });
+    await refreshLeads();
+  }catch(err){
+    console.error('[quickFollow]', err);
+    alert('S’përditësua follow-up.');
+  }finally{
+    EL('#loading').style.display='none';
+  }
 }
 
 /* ===== EMAIL & ICS ===== */
@@ -751,9 +818,17 @@ function downloadCSV(){
 /* ===== DATA FLOW ===== */
 async function refreshLeads(){
   EL('#loading').style.display='inline-flex';
-  [LEADS, COUNTS] = await Promise.all([ fetchLeads(), fetchCounts() ]);
-  EL('#loading').style.display='none';
-  render();
+  try{
+    const [leads, counts] = await Promise.all([ fetchLeads(), fetchCounts() ]);
+    LEADS = Array.isArray(leads) ? leads : [];
+    COUNTS = counts instanceof Map ? counts : new Map();
+    render();
+  }catch(err){
+    console.error('[refreshLeads]', err);
+    alert('Gabim gjatë rifreskimit të të dhënave.');
+  }finally{
+    EL('#loading').style.display='none';
+  }
 }
 
 /* ===== INIT ===== */
