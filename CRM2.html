@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="sq">
 <head>
@@ -47,12 +48,10 @@
   .muted{color:var(--muted); font-size:12px}
   .tag{display:inline-block; padding:2px 6px; border-radius:999px; border:1px solid var(--line); font-size:11px; background:#f1f5f9}
   .due{color:#fff; background:#ef4444; padding:2px 6px; border-radius:8px; font-weight:800; font-size:11px}
-
-  /* Modal i përgjithshëm */
   .modal{
     position:fixed; inset:0; background:rgba(0,0,0,.55);
     display:none; align-items:center; justify-content:center;
-    padding:18px; z-index:100; overflow:auto;
+    padding:18px; z-index:100; overflow:auto; /* lejo scroll në overlay */
   }
   .panel{
     max-width:760px; width:100%;
@@ -98,7 +97,7 @@
   <section class="card">
     <div class="top">
       <h2 style="margin:0;font-size:16px">Shto lead</h2>
-      <div class="muted">Fushat <strong>NIPT</strong>, <strong>Industri</strong>, <strong>Aktivitet</strong> janë opsionale.</div>
+      <div class="muted">Fusha <strong>NIPT</strong> është opsionale.</div>
     </div>
     <div class="grid" style="margin-top:10px">
       <div class="row">
@@ -120,21 +119,10 @@
         </div>
       </div>
 
-      <div class="row-2">
+      <div class="row">
         <div>
           <label>NIPT (ops.)</label>
           <input id="f_nipt" placeholder="p.sh. K12345678M">
-        </div>
-        <div>
-          <label>Industri (ops.)</label>
-          <input id="f_industry" placeholder="p.sh. Teknologji, Shëndetësi...">
-        </div>
-      </div>
-
-      <div class="row-2">
-        <div>
-          <label>Aktivitet (ops.)</label>
-          <input id="f_activity" placeholder="p.sh. Shërbime IT, Market...">
         </div>
         <div>
           <label>Burimi</label>
@@ -145,9 +133,6 @@
             <option>Tjetër</option>
           </select>
         </div>
-      </div>
-
-      <div class="row-2">
         <div>
           <label>Status Telefonate</label>
           <select id="f_call_status">
@@ -194,7 +179,7 @@
     <div class="top">
       <h2 style="margin:0;font-size:16px">Leads</h2>
       <div class="flex">
-        <input id="q" placeholder="Kërko (kompania, kontakt, tel, email)" oninput="debouncedRender()">
+        <input id="q" placeholder="Kërko (kompania, kontakt, tel, email, NIPT)" oninput="debouncedRender()">
         <select id="flt_source" onchange="render()">
           <option value="">Burimi (gjithë)</option>
           <option>QKB</option>
@@ -241,6 +226,7 @@
           <tr>
             <th>Kompania</th>
             <th>Kontakt</th>
+            <th>NIPT</th>
             <th>Burimi</th>
             <th>Tel status</th>
             <th>Rezultat</th>
@@ -333,19 +319,6 @@
   </div>
 </div>
 
-<!-- MODAL: Faqja e biznesit -->
-<div class="modal" id="companyModal">
-  <div class="panel">
-    <div class="top">
-      <h3 id="c_title" style="margin:0"></h3>
-      <button class="btn" onclick="closeCompany()">Mbyll</button>
-    </div>
-    <div id="c_details" class="grid" style="margin-bottom:10px"></div>
-    <h4 style="margin:12px 0 6px 0">Aktivitetet</h4>
-    <div id="c_timeline" class="grid"></div>
-  </div>
-</div>
-
 <!-- Supabase SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
@@ -357,7 +330,7 @@ const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ===== STATE ===== */
 let LEADS = [];
-let COMMENTS = {}; // cache i komenteve për lead-in e hapur
+let COMMENTS = {};       // cache i komenteve për lead-in e hapur
 let COMMENT_COUNTS = {}; // lead_id -> numër komentesh (nga view)
 const EL = sel => document.querySelector(sel);
 const ESC = s => (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;', "'":'&#39;' }[m]));
@@ -370,7 +343,7 @@ function addDays(date,days){ const d=new Date(date); d.setDate(d.getDate()+days)
 async function fetchLeadsOnly(){
   const { data, error } = await sb
     .from('leads')
-    .select('id,created_at,company,contact,phone,email,nipt,industry,business_activity,source,call_status,answer_outcome,next_follow_up,meeting_status,meeting_date,field_agent')
+    .select('id,created_at,company,contact,phone,email,nipt,source,call_status,answer_outcome,next_follow_up,meeting_status,meeting_date,field_agent')
     .order('created_at',{ascending:false})
     .limit(300);
   if(error){ console.error(error); alert('Nuk u lexuan lead-et nga DB.'); return []; }
@@ -423,7 +396,7 @@ function badgeResult(s){
 }
 function badgeMeeting(s){
   if(s==='Accepted') return `<span class="pill ok"><i class="fa-solid fa-user-check"></i> ${s}</span>`;
-  if(s==='Pending') return `<span class="pill warn"><i class="fa-solid fa-hourglass-half"></i> ${s}</span>`;
+  if(s==='Pending')  return `<span class="pill warn"><i class="fa-solid fa-hourglass-half"></i> ${s}</span>`;
   if(s==='Refused - Closed') return `<span class="pill bad"><i class="fa-solid fa-circle-xmark"></i> ${s}</span>`;
   return `<span class="pill">${ESC(s||'—')}</span>`;
 }
@@ -437,7 +410,7 @@ function render(){
   const sort = EL('#sortBy').value;
 
   let arr = LEADS.filter(x=>{
-    const hay = (x.company+' '+(x.contact||'')+' '+(x.phone||'')+' '+(x.email||'')).toLowerCase(); // nipt/industry/activity nuk përfshihen në kërkim publik
+    const hay = (x.company+' '+(x.contact||'')+' '+(x.phone||'')+' '+(x.email||'')+' '+(x.nipt||'')).toLowerCase();
     const passQ = !q || hay.includes(q);
     const passS = !fs || x.source===fs;
     const passC = !fc || x.call_status===fc;
@@ -458,8 +431,9 @@ function render(){
     const due = x.next_follow_up && x.next_follow_up <= todayStr() ? `<span class="due">Due</span>` : '';
     const commentsCount = COMMENT_COUNTS[x.id] ?? 0;
     return `<tr>
-      <td><strong><a href="#" onclick="openCompany('${x.id}');return false;">${ESC(x.company)}</a></strong><br><span class="muted">${ESC(x.created_at||'')}</span></td>
+      <td><strong>${ESC(x.company)}</strong><br><span class="muted">${ESC(x.created_at||'')}</span></td>
       <td>${ESC(x.contact||'')}<br><span class="muted">${ESC(x.phone||'')} ${x.email? ' · '+ESC(x.email):''}</span></td>
+      <td>${ESC(x.nipt||'')}</td>
       <td><span class="tag">${ESC(x.source||'')}</span></td>
       <td>${badgeCall(x.call_status)}</td>
       <td>${badgeResult(x.answer_outcome)}</td>
@@ -472,15 +446,15 @@ function render(){
         <button class="btn" title="Hap" onclick="openModal('${x.id}')"><i class="fa-regular fa-pen-to-square"></i></button>
       </td>
     </tr>`;
-  }).join('') || `<tr><td colspan="10" class="muted">S'ka të dhëna.</td></tr>`;
+  }).join('') || `<tr><td colspan="11" class="muted">S'ka të dhëna.</td></tr>`;
 }
 
 /* Debounce për kërkim */
 let _deb; function debouncedRender(){ clearTimeout(_deb); _deb=setTimeout(render,150); }
 
-/* ===== UI: FORM (RPC 1-round-trip me fallback) ===== */
+/* ===== UI: FORM (RPC 1-round-trip) ===== */
 function clearForm(){
-  ['f_company','f_contact','f_phone','f_email','f_nipt','f_industry','f_activity','f_field_agent','f_meeting_date','f_notes'].forEach(id=> EL('#'+id).value='');
+  ['f_company','f_contact','f_phone','f_email','f_nipt','f_field_agent','f_meeting_date','f_notes'].forEach(id=> EL('#'+id).value='');
   EL('#f_source').value='QKB';
   EL('#f_call_status').value='Not answered';
   EL('#f_answer_outcome').value='';
@@ -489,12 +463,10 @@ function clearForm(){
 async function addLead(){
   const company = EL('#f_company').value.trim();
   const contact = EL('#f_contact').value.trim();
-  const phone = EL('#f_phone').value.trim();
-  const email = EL('#f_email').value.trim();
-  const nipt = EL('#f_nipt').value.trim();
-  const industry = EL('#f_industry').value.trim();
-  const activity = EL('#f_activity').value.trim();
-  const source = EL('#f_source').value;
+  const phone   = EL('#f_phone').value.trim();
+  const email   = EL('#f_email').value.trim();
+  const nipt    = EL('#f_nipt').value.trim();
+  const source  = EL('#f_source').value;
   const call_status = EL('#f_call_status').value;
   const answer_outcome = EL('#f_answer_outcome').value || null;
   const field_agent = EL('#f_field_agent').value.trim();
@@ -510,59 +482,39 @@ async function addLead(){
 
   EL('#loading').style.display='inline-flex';
 
-  // — Provo RPC me fusha të reja —
-  let rpcError = null;
-  try{
-    const { error } = await sb.rpc('add_lead_with_log', {
-      p_id: id,
-      p_created_at: todayStr(),
-      p_company: company,
-      p_contact: contact,
-      p_phone: phone,
-      p_email: email,
-      p_nipt: nipt,
-      p_source: source,
-      p_call_status: call_status,
-      p_answer_outcome: answer_outcome,
-      p_next_follow_up: nextFU,
-      p_meeting_status: meeting_status,
-      p_meeting_date: meeting_date || null,
-      p_field_agent: field_agent,
-      p_prime_note: primeNote,
-      // nëse RPC është përditësuar me këto dy parametra:
-      p_industry: industry || null,
-      p_business_activity: activity || null
-    });
-    if(error) rpcError = error;
-  }catch(e){ rpcError = e; }
+  const { error } = await sb.rpc('add_lead_with_log', {
+    p_id: id,
+    p_created_at: todayStr(),
+    p_company: company,
+    p_contact: contact,
+    p_phone: phone,
+    p_email: email,
+    p_nipt: nipt,
+    p_source: source,
+    p_call_status: call_status,
+    p_answer_outcome: answer_outcome,
+    p_next_follow_up: nextFU,
+    p_meeting_status: meeting_status,
+    p_meeting_date: meeting_date || null,
+    p_field_agent: field_agent,
+    p_prime_note: primeNote
+  });
 
-  // — Fallback në INSERT direkt (nëse RPC nuk ka kolonat e reja) —
-  if(rpcError){
-    console.warn('RPC error, using fallback insert:', rpcError);
-    const { error: insErr } = await sb.from('leads').insert([{
-      id, created_at: todayStr(), company, contact, phone,
-      email: email || null, nipt: nipt || null, industry: industry || null, business_activity: activity || null,
-      source, call_status, answer_outcome, next_follow_up: nextFU,
-      meeting_status, meeting_date: meeting_date || null, field_agent: field_agent || null
-    }]);
-    if(insErr){ alert(`Shtimi dështoi: ${insErr.message || 'Shiko Console'}`); EL('#loading').style.display='none'; return; }
-    // Log "create" me shënimin fillestar, nëse ka
-    if(primeNote){
-      await sb.from('lead_updates').insert([{ lead_id: id, kind:'create', comment: primeNote }]).catch(()=>{});
-    }else{
-      await sb.from('lead_updates').insert([{ lead_id: id, kind:'create' }]).catch(()=>{});
-    }
+  if(error){
+    console.error('RPC add_lead_with_log error:', error);
+    alert(`Shtimi dështoi: ${error.message || 'Shiko Console'}`);
+    EL('#loading').style.display='none';
+    return;
   }
 
   /* Optimistic UI: shtoje menjëherë */
   LEADS.unshift({
     id, created_at: todayStr(), company, contact,
-    phone, email: email || null, nipt: nipt || null,
-    industry: industry || null, business_activity: activity || null,
-    source, call_status, answer_outcome, next_follow_up: nextFU,
+    phone, email: email || null, nipt: nipt || null, source,
+    call_status, answer_outcome, next_follow_up: nextFU,
     meeting_status, meeting_date: meeting_date || null, field_agent: field_agent || null
   });
-  COMMENT_COUNTS[id] = (primeNote ? 1 : 0); // një log fillestar nëse kishte shënim
+  COMMENT_COUNTS[id] = (primeNote ? 1 : 0); // një log 'create' + koment prime nëse ekziston
   render();
   clearForm();
 
@@ -599,17 +551,18 @@ function renderTimeline(id){
   const html = arr.map(c=>{
     const d = new Date(c.ts);
     const meta = c.kind==='comment' ? 'Koment' : (c.kind==='create' ? 'Krijuar' : 'Përditësim');
-    const who = c.field_agent ? 'Agjent terreni' : 'Telesales';
     const details = [
-      `<div class="muted">${who} · ${d.toLocaleString()}</div>`,
-      c.comment ? `<div>${ESC(c.comment)}</div>` : '',
+      c.comment ? ESC(c.comment) : '',
       c.new_result ? `<div><strong>Rezultat:</strong> ${ESC(c.new_result)}</div>` : '',
       c.next_follow_up ? `<div><strong>Follow-up:</strong> ${ESC(c.next_follow_up)}</div>` : '',
       c.meeting_status ? `<div><strong>Takimi:</strong> ${ESC(c.meeting_status)} ${c.meeting_date? ' · '+ESC(c.meeting_date):''}</div>` : '',
       c.field_agent ? `<div><strong>Agjent:</strong> ${ESC(c.field_agent)}</div>` : '',
       c.email ? `<div><strong>Email:</strong> ${ESC(c.email)}</div>` : ''
     ].filter(Boolean).join('');
-    return `<div class="card" style="padding:10px">${details || '<em class="muted">—</em>'}</div>`;
+    return `<div class="card" style="padding:10px">
+      <div class="muted">${meta} · ${d.toLocaleString()}</div>
+      <div>${details || '<em class="muted">—</em>'}</div>
+    </div>`;
   }).join('');
   document.getElementById('m_timeline').innerHTML = html || `<div class="muted">S’ka komente ende.</div>`;
 }
@@ -622,9 +575,7 @@ document.getElementById('modal').addEventListener('click', (e)=>{
 document.addEventListener('keydown', (e)=>{
   if(e.key === 'Escape'){
     const modal = document.getElementById('modal');
-    const cmodal = document.getElementById('companyModal');
     if(modal.style.display === 'flex') closeModal();
-    if(cmodal.style.display === 'flex') closeCompany();
   }
 });
 
@@ -633,12 +584,12 @@ async function saveModal(){
   const x = LEADS.find(i=>i.id===CURRENT_ID); if(!x) return;
 
   const newResult = EL('#m_result').value || null;
-  const nextFU = EL('#m_next').value || null;
-  const mStatus = EL('#m_meeting_status').value || null;
-  const mDate = EL('#m_meeting_date').value || null;
-  const agent = EL('#m_agent').value.trim() || null;
-  const email = EL('#m_email').value.trim() || null;
-  const comment = EL('#m_comment').value.trim();
+  const nextFU    = EL('#m_next').value || null;
+  const mStatus   = EL('#m_meeting_status').value || null;
+  const mDate     = EL('#m_meeting_date').value || null;
+  const agent     = EL('#m_agent').value.trim() || null;
+  const email     = EL('#m_email').value.trim() || null;
+  const comment   = EL('#m_comment').value.trim();
 
   const autoFU = (!nextFU && (newResult==='Do ta eskaloj' || newResult==='Do të mendohet')) ? todayStr(addDays(new Date(),3)) : null;
 
@@ -670,7 +621,7 @@ async function saveModal(){
   });
 
   /* 3) Rifresko UI */
-  await refreshLeads(); // merr edhe numërimet reale nga view
+  await refreshLeads();                  // merr edhe numërimet reale nga view
   COMMENTS[x.id] = await fetchComments(x.id);
   renderTimeline(x.id);
   EL('#loading').style.display='none';
@@ -686,49 +637,6 @@ async function quickFollow(id){
   await refreshLeads();
   EL('#loading').style.display='none';
 }
-
-/* ===== FAQJA E BIZNESIT ===== */
-async function openCompany(id){
-  const x = LEADS.find(i=>i.id===id); if(!x) return;
-  EL('#c_title').textContent = x.company;
-  EL('#c_details').innerHTML = `
-    <div><strong>Kontakt:</strong> ${ESC(x.contact||'')}</div>
-    <div><strong>Tel:</strong> ${ESC(x.phone||'')}</div>
-    <div><strong>Email:</strong> ${ESC(x.email||'')}</div>
-    <div><strong>NIPT:</strong> ${ESC(x.nipt||'')}</div>
-    <div><strong>Industri:</strong> ${ESC(x.industry||'')}</div>
-    <div><strong>Aktivitet:</strong> ${ESC(x.business_activity||'')}</div>
-    <div><strong>Burimi:</strong> ${ESC(x.source||'')}</div>
-    <div><strong>Status telefonate:</strong> ${ESC(x.call_status||'')}</div>
-    <div><strong>Rezultat:</strong> ${ESC(x.answer_outcome||'')}</div>
-    <div><strong>Takimi:</strong> ${ESC(x.meeting_status||'')} ${x.meeting_date? ' · '+ESC(x.meeting_date):''}</div>
-    <div><strong>Agjent:</strong> ${ESC(x.field_agent||'')}</div>
-    <div><strong>Follow-up:</strong> ${ESC(x.next_follow_up||'')}</div>
-  `;
-
-  const updates = await fetchComments(id);
-  EL('#c_timeline').innerHTML = (updates||[]).map(u=>{
-    const d = new Date(u.ts).toLocaleString();
-    const who = u.field_agent ? 'Agjent terreni' : 'Telesales';
-    const body = [
-      `<div class="muted">${who} · ${d}</div>`,
-      u.comment ? `<div>${ESC(u.comment)}</div>` : '',
-      u.new_result ? `<div><strong>Rezultat:</strong> ${ESC(u.new_result)}</div>` : '',
-      u.next_follow_up ? `<div><strong>Follow-up:</strong> ${ESC(u.next_follow_up)}</div>` : '',
-      u.meeting_status ? `<div><strong>Takimi:</strong> ${ESC(u.meeting_status)} ${u.meeting_date? ' · '+ESC(u.meeting_date):''}</div>` : '',
-      u.field_agent ? `<div><strong>Agjent:</strong> ${ESC(u.field_agent)}</div>` : '',
-      u.email ? `<div><strong>Email:</strong> ${ESC(u.email)}</div>` : ''
-    ].filter(Boolean).join('');
-    return `<div class="card" style="padding:10px">${body || '<em class="muted">—</em>'}</div>`;
-  }).join('') || `<div class="muted">S’ka aktivitet ende.</div>`;
-
-  document.getElementById('companyModal').style.display='flex';
-}
-function closeCompany(){ document.getElementById('companyModal').style.display='none'; }
-/* mbyll kur klikon jashtë panelit */
-document.getElementById('companyModal').addEventListener('click', (e)=>{
-  if(e.target.id === 'companyModal') closeCompany();
-});
 
 /* ===== EMAIL & ICS ===== */
 function sendEmailTemplate(){
@@ -784,10 +692,10 @@ function downloadICSMeeting(){
 
 /* ===== CSV ===== */
 function downloadCSV(){
-  const cols = ["id","created_at","company","nipt","industry","business_activity","contact","phone","email","source","call_status","answer_outcome","next_follow_up","meeting_status","meeting_date","field_agent"];
+  const cols = ["id","created_at","company","nipt","contact","phone","email","source","call_status","answer_outcome","next_follow_up","meeting_status","meeting_date","field_agent"];
   const lines = [cols.join(',')];
   LEADS.forEach(x=>{
-    const row = [x.id,x.created_at,x.company,x.nipt||'',x.industry||'',x.business_activity||'',x.contact||'',x.phone||'',x.email||'',x.source||'',x.call_status||'',x.answer_outcome||'',x.next_follow_up||'',x.meeting_status||'',x.meeting_date||'',x.field_agent||'']
+    const row = [x.id,x.created_at,x.company,x.nipt||'',x.contact||'',x.phone||'',x.email||'',x.source||'',x.call_status||'',x.answer_outcome||'',x.next_follow_up||'',x.meeting_status||'',x.meeting_date||'',x.field_agent||'']
       .map(v => `"${String(v??'').replace(/"/g,'""')}"`);
     lines.push(row.join(','));
   });
@@ -809,18 +717,16 @@ function importCSV(file){
         created_at: cells[1]||todayStr(),
         company: cells[2]||'',
         nipt: cells[3]||null,
-        industry: cells[4]||null,
-        business_activity: cells[5]||null,
-        contact: cells[6]||'',
-        phone: cells[7]||'',
-        email: cells[8]||'',
-        source: cells[9]||'',
-        call_status: cells[10]||'',
-        answer_outcome: cells[11]||null,
-        next_follow_up: cells[12]||null,
-        meeting_status: cells[13]||null,
-        meeting_date: cells[14]||null,
-        field_agent: cells[15]||null
+        contact: cells[4]||'',
+        phone: cells[5]||'',
+        email: cells[6]||'',
+        source: cells[7]||'',
+        call_status: cells[8]||'',
+        answer_outcome: cells[9]||null,
+        next_follow_up: cells[10]||null,
+        meeting_status: cells[11]||null,
+        meeting_date: cells[12]||null,
+        field_agent: cells[13]||null
       });
     });
     const { error } = await sb.from('leads').insert(batch);
