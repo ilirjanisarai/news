@@ -1,9 +1,10 @@
+
 <!DOCTYPE html>
 <html lang="sq">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>ADC · Mini CRM (Supabase only)</title>
+<title>ADC · Mini CRM (Supabase Auth + RLS)</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
@@ -47,29 +48,22 @@
   .muted{color:var(--muted); font-size:12px}
   .tag{display:inline-block; padding:2px 6px; border-radius:999px; border:1px solid var(--line); font-size:11px; background:#f1f5f9}
   .due{color:#fff; background:#ef4444; padding:2px 6px; border-radius:8px; font-weight:800; font-size:11px}
-  .modal{
-    position:fixed; inset:0; background:rgba(0,0,0,.55);
-    display:none; align-items:center; justify-content:center;
-    padding:18px; z-index:100; overflow:auto; /* lejo scroll në overlay */
-  }
-  .panel{
-    max-width:760px; width:100%;
-    background:var(--surface); border:1px solid var(--line);
-    border-radius:16px; box-shadow:var(--shadow); padding:16px;
-    max-height:90vh; overflow:auto; display:flex; flex-direction:column;
-  }
-  .panel .top{
-    position:sticky; top:0; background:var(--surface); z-index:1;
-    padding-bottom:8px; margin-bottom:8px; border-bottom:1px solid var(--line);
-  }
-  #m_timeline{ max-height:50vh; overflow:auto; }
-  .top{display:flex; align-items:center; justify-content:space-between; gap:8px}
-  .flex{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
-  .nowrap{white-space:nowrap}
-  .right{display:flex; gap:8px; justify-content:flex-end}
   .table-scroll{width:100%; overflow:auto}
   .hide{display:none}
   #loading{display:none; align-items:center; gap:8px; font-weight:800}
+
+  /* ===== Overlay Auth ===== */
+  #auth{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.06);backdrop-filter:blur(4px);z-index:9999}
+  #auth .panel{width:360px;max-width:94%;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:16px}
+
+  /* ===== Modal (Faqja e Biznesit) ===== */
+  .modal{position:fixed; inset:0; background:rgba(0,0,0,.55); display:none; align-items:center; justify-content:center; padding:18px; z-index:1000}
+  .panel{max-width:900px; width:100%; background:var(--surface); border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow); display:flex; flex-direction:column; max-height:90vh}
+  .panel .head{position:sticky; top:0; background:var(--surface); border-bottom:1px solid var(--line); padding:14px; display:flex; align-items:center; justify-content:space-between; gap:8px; z-index:1}
+  .panel .body{padding:14px; overflow:auto}
+  .flex{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
+  .right{display:flex; gap:8px; justify-content:flex-end}
+  .nowrap{white-space:nowrap}
 </style>
 </head>
 <body>
@@ -77,16 +71,14 @@
   <div class="wrap" style="display:flex; align-items:center; justify-content:space-between; gap:12px">
     <div>
       <h1><i class="fa-solid fa-address-book"></i> ADC · Mini CRM (Supabase)</h1>
-      <div class="muted">Gjithçka ruhet dhe lexohet nga Supabase · Shfaqet për këdo që hap faqen</div>
+      <div class="muted">Kërkon login · Të dhënat ruhen/lexohen nga Supabase · Shfaqen për këdo të loguar</div>
     </div>
     <div class="toolbar">
       <div id="loading" class="muted"><i class="fa-solid fa-spinner fa-spin"></i> Duke ngarkuar…</div>
       <button class="btn" onclick="refreshLeads()"><i class="fa-solid fa-rotate"></i> Rifresko</button>
       <button class="btn" onclick="downloadCSV()"><i class="fa-solid fa-file-export"></i> Eksport CSV</button>
-      <label class="btn">
-        <i class="fa-solid fa-file-import"></i> Import CSV
-        <input id="csvInput" type="file" accept=".csv" class="hide" onchange="importCSV(this.files[0])">
-      </label>
+      <span id="user_slot" class="muted"></span>
+      <button class="btn" onclick="signOut()"><i class="fa-solid fa-right-from-bracket"></i> Dil</button>
     </div>
   </div>
 </header>
@@ -94,9 +86,9 @@
 <main class="wrap grid two" id="app">
   <!-- SHTO LEAD (SIPËR) -->
   <section class="card">
-    <div class="top">
+    <div class="flex" style="justify-content:space-between">
       <h2 style="margin:0;font-size:16px">Shto lead</h2>
-      <div class="muted">Fusha <strong>NIPT</strong> është opsionale.</div>
+      <div class="muted">Fusha <strong>NIPT</strong>, <strong>Industry</strong> dhe <strong>Activity</strong> janë opsionale.</div>
     </div>
     <div class="grid" style="margin-top:10px">
       <div class="row">
@@ -124,6 +116,14 @@
           <input id="f_nipt" placeholder="p.sh. K12345678M">
         </div>
         <div>
+          <label>Industry (ops.)</label>
+          <input id="f_industry" placeholder="p.sh. Energjia / Prodhim / Shërbime">
+        </div>
+        <div>
+          <label>Activity (ops.)</label>
+          <input id="f_activity" placeholder="p.sh. Furnizim me energji">
+        </div>
+        <div>
           <label>Burimi</label>
           <select id="f_source">
             <option>QKB</option>
@@ -132,6 +132,9 @@
             <option>Tjetër</option>
           </select>
         </div>
+      </div>
+
+      <div class="row">
         <div>
           <label>Status Telefonate</label>
           <select id="f_call_status">
@@ -150,9 +153,6 @@
             <option>Do të mendohet</option>
           </select>
         </div>
-      </div>
-
-      <div class="row-2">
         <div>
           <label>Agjent terreni (nëse caktohet takim)</label>
           <input id="f_field_agent" placeholder="p.sh. Arben H.">
@@ -175,10 +175,10 @@
 
   <!-- LISTA & FILTRA (POSHTË) -->
   <section class="card">
-    <div class="top">
+    <div class="flex" style="justify-content:space-between">
       <h2 style="margin:0;font-size:16px">Leads</h2>
       <div class="flex">
-        <input id="q" placeholder="Kërko (kompania, kontakt, tel, email, NIPT)" oninput="debouncedRender()">
+        <input id="q" placeholder="Kërko (kompania, kontakt, tel, email)" oninput="render()">
         <select id="flt_source" onchange="render()">
           <option value="">Burimi (gjithë)</option>
           <option>QKB</option>
@@ -225,7 +225,6 @@
           <tr>
             <th>Kompania</th>
             <th>Kontakt</th>
-            <th>NIPT</th>
             <th>Burimi</th>
             <th>Tel status</th>
             <th>Rezultat</th>
@@ -242,79 +241,117 @@
   </section>
 </main>
 
-<!-- MODAL: Komente & Takimi -->
+<!-- MODAL: Faqja e biznesit / komente & aktivitet -->
 <div class="modal" id="modal">
   <div class="panel">
-    <div class="top">
+    <div class="head">
       <div>
         <h3 id="m_title" style="margin:0"></h3>
         <div class="muted" id="m_meta"></div>
       </div>
-      <button class="btn" onclick="closeModal()">Mbyll</button>
-    </div>
-
-    <div class="grid" style="margin-top:12px">
-      <div class="row-2">
-        <div>
-          <label>Përditëso rezultat</label>
-          <select id="m_result">
-            <option value="">—</option>
-            <option>I interesuar</option>
-            <option>I pa interesuar</option>
-            <option>Do ta eskaloj</option>
-            <option>Do të mendohet</option>
-          </select>
-        </div>
-        <div>
-          <label>Follow-up (auto +3 ditë në eskalim/mendim)</label>
-          <input id="m_next" type="date">
-        </div>
-      </div>
-
-      <div class="row-2">
-        <div>
-          <label>Status takimi</label>
-          <select id="m_meeting_status">
-            <option value="">—</option>
-            <option>Pending</option>
-            <option>Accepted</option>
-            <option>Refused - Closed</option>
-          </select>
-        </div>
-        <div>
-          <label>Data takimit</label>
-          <input id="m_meeting_date" type="date">
-        </div>
-      </div>
-
-      <div class="row-2">
-        <div>
-          <label>Agjent terreni</label>
-          <input id="m_agent" placeholder="p.sh. Arben H.">
-        </div>
-        <div>
-          <label>Email i klientit</label>
-          <input id="m_email">
-        </div>
-      </div>
-
-      <div>
-        <label>Koment i ri</label>
-        <textarea id="m_comment" placeholder="Përshkrim i telefonatës / takimit / follow-up"></textarea>
-      </div>
-
-      <div class="flex right">
-        <button class="btn" onclick="sendEmailTemplate()"><i class="fa-solid fa-envelope"></i> Dërgo email</button>
-        <button class="btn" onclick="downloadICSFollowup()"><i class="fa-regular fa-calendar-plus"></i> .ics Follow-up</button>
-        <button class="btn" onclick="downloadICSMeeting()"><i class="fa-regular fa-calendar"></i> .ics Takim</button>
-        <button class="btn ok" onclick="saveModal()"><i class="fa-solid fa-floppy-disk"></i> Ruaj</button>
-      </div>
-
-      <div>
-        <h4 style="margin:12px 0 6px 0">Kronologji komentesh</h4>
-        <div id="m_timeline" class="grid"></div>
+      <div class="flex">
+        <button class="btn" onclick="closeModal()">Mbyll</button>
       </div>
     </div>
+
+    <div class="body">
+      <div class="grid" style="margin-top:8px">
+        <div class="row-3">
+          <div>
+            <label>NIPT</label>
+            <input id="m_nipt">
+          </div>
+          <div>
+            <label>Industry</label>
+            <input id="m_industry">
+          </div>
+          <div>
+            <label>Activity</label>
+            <input id="m_activity">
+          </div>
+        </div>
+
+        <div class="row-2" style="margin-top:8px">
+          <div>
+            <label>Përditëso rezultat</label>
+            <select id="m_result">
+              <option value="">—</option>
+              <option>I interesuar</option>
+              <option>I pa interesuar</option>
+              <option>Do ta eskaloj</option>
+              <option>Do të mendohet</option>
+            </select>
+          </div>
+          <div>
+            <label>Follow-up (auto +3 ditë në eskalim/mendim)</label>
+            <input id="m_next" type="date">
+          </div>
+        </div>
+
+        <div class="row-3">
+          <div>
+            <label>Status takimi</label>
+            <select id="m_meeting_status">
+              <option value="">—</option>
+              <option>Pending</option>
+              <option>Accepted</option>
+              <option>Refused - Closed</option>
+            </select>
+          </div>
+          <div>
+            <label>Data takimit</label>
+            <input id="m_meeting_date" type="date">
+          </div>
+          <div>
+            <label>Agjent terreni</label>
+            <input id="m_agent" placeholder="p.sh. Arben H.">
+          </div>
+        </div>
+
+        <div class="row-2">
+          <div>
+            <label>Email i klientit</label>
+            <input id="m_email">
+          </div>
+          <div>
+            <label>Telefon</label>
+            <input id="m_phone">
+          </div>
+        </div>
+
+        <div>
+          <label>Koment i ri</label>
+          <textarea id="m_comment" placeholder="Përshkrim i telefonatës / takimit / follow-up"></textarea>
+        </div>
+
+        <div class="flex right">
+          <button class="btn" onclick="sendEmailTemplate()"><i class="fa-solid fa-envelope"></i> Dërgo email</button>
+          <button class="btn" onclick="downloadICSFollowup()"><i class="fa-regular fa-calendar-plus"></i> .ics Follow-up</button>
+          <button class="btn" onclick="downloadICSMeeting()"><i class="fa-regular fa-calendar"></i> .ics Takim</button>
+          <button class="btn ok" onclick="saveModal()"><i class="fa-solid fa-floppy-disk"></i> Ruaj</button>
+        </div>
+
+        <div>
+          <h4 style="margin:12px 0 6px 0">Kronologji (telesales & terren)</h4>
+          <div id="m_timeline" class="grid"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Overlay: Supabase Auth ===== -->
+<div id="auth">
+  <div class="panel">
+    <h3 style="margin:0 0 8px 0;font-size:18px;font-weight:800">Hyrje në Mini-CRM</h3>
+    <div style="color:var(--muted);font-size:12px;margin-bottom:10px">Identifikohu me email dhe fjalëkalim.</div>
+    <input id="auth_email" type="email" placeholder="email" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px">
+    <input id="auth_pwd" type="password" placeholder="fjalëkalim" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin-bottom:10px">
+    <div style="display:flex;gap:8px;justify-content:flex-end">
+      <button class="btn" onclick="signIn()">Hyr</button>
+      <button class="btn" onclick="signUp()">Krijo</button>
+    </div>
+    <div id="auth_msg" style="color:#b91c1c;font-size:12px;margin-top:8px"></div>
   </div>
 </div>
 
@@ -323,14 +360,15 @@
 
 <script>
 /* ===== KONFIGURIM SUPABASE ===== */
-const SUPABASE_URL = 'https://cpkyagcuowjvofgcgdwx.supabase.co/';
-const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwa3lhZ2N1b3dqdm9mZ2NnZHd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4MjI3OTksImV4cCI6MjA3MjM5ODc5OX0.NqgKif1QO3vtigZ9eWRc8JuJLCw6JoeRIcqWwzXCIQs';
+const SUPABASE_URL = 'https://cpkyagcuowjvofgcgdwx.supabase.co'; // ← ZËVENDËSOJE NËSE NDRYSHON
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9....'; // ← VENDOS ANON KEY TËND
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ===== STATE ===== */
-let LEADS = [];
-let COMMENTS = {};       // cache i komenteve për lead-in e hapur
-let COMMENT_COUNTS = {}; // lead_id -> numër komentesh (nga view)
+let LEADS = []; // lista e lead-eve nga DB
+let COMMENTS = {}; // cache: lead_id -> array updates
+let COUNTS = new Map(); // lead_id -> comments count
+let CURRENT_ID = null; // lead i hapur në modal
 const EL = sel => document.querySelector(sel);
 const ESC = s => (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;', "'":'&#39;' }[m]));
 
@@ -338,31 +376,82 @@ const ESC = s => (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&
 function todayStr(d=new Date()){ const z=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate()); }
 function addDays(date,days){ const d=new Date(date); d.setDate(d.getDate()+days); return d; }
 
-/* ===== DB ===== */
-async function fetchLeadsOnly(){
+/* ===== AUTH ===== */
+async function requireSession(){
+  const { data: { session } } = await sb.auth.getSession();
+  if(session){
+    document.getElementById('auth').style.display='none';
+    const u = session.user?.email || '';
+    const slot = document.getElementById('user_slot');
+    if(slot) slot.textContent = u ? ('• ' + u) : '';
+    return true;
+  } else {
+    document.getElementById('auth').style.display='flex';
+    return false;
+  }
+}
+async function signIn(){
+  const email = document.getElementById('auth_email').value.trim();
+  const password = document.getElementById('auth_pwd').value;
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  document.getElementById('auth_msg').textContent = error ? (error.message || 'Login dështoi') : '';
+  if(!error){ document.getElementById('auth').style.display='none'; await refreshLeads(); }
+}
+async function signUp(){
+  const email = document.getElementById('auth_email').value.trim();
+  const password = document.getElementById('auth_pwd').value;
+  const { error } = await sb.auth.signUp({ email, password });
+  document.getElementById('auth_msg').textContent = error ? (error.message || 'Sign up dështoi') : 'U krijua. Kontrollo email-in (nëse kërkohet verifikim).';
+}
+async function signOut(){
+  await sb.auth.signOut();
+  LEADS = []; COMMENTS = {}; COUNTS = new Map(); render();
+  document.getElementById('auth').style.display='flex';
+}
+sb.auth.onAuthStateChange(async (_evt, session) => {
+  if(session){ document.getElementById('auth').style.display='none'; await refreshLeads(); }
+  else{ document.getElementById('auth').style.display='flex'; }
+});
+
+/* ===== DB: COUNTS (view lead_comment_counts) ===== */
+async function fetchCounts(){
+  const { data, error } = await sb.from('lead_comment_counts').select('*');
+  if(error){ console.warn('[counts]', error); return new Map(); }
+  const map = new Map();
+  (data||[]).forEach(r => map.set(r.lead_id, r.comments||0));
+  return map;
+}
+
+/* ===== DB: LEADS ===== */
+async function fetchLeads(){
+  EL('#loading').style.display='inline-flex';
   const { data, error } = await sb
     .from('leads')
-    .select('id,created_at,company,contact,phone,email,nipt,source,call_status,answer_outcome,next_follow_up,meeting_status,meeting_date,field_agent')
-    .order('created_at',{ascending:false})
-    .limit(300);
-  if(error){ console.error(error); alert('Nuk u lexuan lead-et nga DB.'); return []; }
-  return data || [];
-}
-async function fetchCommentCounts(){
-  const { data, error } = await sb
-    .from('lead_comment_counts')
-    .select('lead_id, comments');
-  if(error){ console.error(error); return []; }
-  return data || [];
-}
-async function fetchComments(lead_id){
-  const { data, error } = await sb
-    .from('lead_updates')
     .select('*')
-    .eq('lead_id', lead_id)
-    .order('ts',{ascending:false});
+    .order('created_at_ts', { ascending:false });
+  EL('#loading').style.display='none';
+  if(error){
+    console.warn(error);
+    alert('Nuk u lexuan lead-et nga DB.');
+    return [];
+  }
+  return data||[];
+}
+async function insertLead(obj){
+  const { error } = await sb.from('leads').insert([obj]);
+  if(error){ console.warn(error); alert('Shtimi në DB dështoi. Kontrollo RLS (INSERT).'); return; }
+  await sb.from('lead_updates').insert([{ lead_id: obj.id, kind:'create', comment:(obj._prime_note||null) }]).catch(()=>{});
+}
+async function updateLeadFields(id, fields){
+  const { error } = await sb.from('leads').update(fields).eq('id', id);
+  if(error){ console.warn(error); alert('UPDATE dështoi. Vendos RLS për UPDATE te leads.'); }
+}
+
+/* ===== DB: UPDATES/COMMENTS ===== */
+async function fetchComments(lead_id){
+  const { data, error } = await sb.from('lead_updates').select('*').eq('lead_id', lead_id).order('ts',{ascending:false});
   if(error){ console.warn(error); return []; }
-  return data || [];
+  return data||[];
 }
 async function insertUpdate(lead_id, payload){
   const row = Object.assign({ lead_id, kind:'update' }, payload);
@@ -373,13 +462,8 @@ async function insertComment(lead_id, text){
   const { error } = await sb.from('lead_updates').insert([{ lead_id, kind:'comment', comment:text }]);
   if(error){ console.warn(error); alert('Nuk u ruajt komenti (lead_updates).'); }
 }
-async function updateLeadFields(id, fields){
-  // FUNKSIONON vetëm nëse ke aktivizuar policy UPDATE (opsionale) në SQL
-  const { error } = await sb.from('leads').update(fields).eq('id', id);
-  if(error){ console.warn(error); /* alert opsional */ }
-}
 
-/* ===== RENDER ===== */
+/* ===== BADGES ===== */
 function badgeCall(s){
   if(s==='Answered') return `<span class="pill ok"><i class="fa-solid fa-phone"></i> ${s}</span>`;
   if(s==='Not answered') return `<span class="pill warn"><i class="fa-solid fa-phone-slash"></i> ${s}</span>`;
@@ -395,11 +479,12 @@ function badgeResult(s){
 }
 function badgeMeeting(s){
   if(s==='Accepted') return `<span class="pill ok"><i class="fa-solid fa-user-check"></i> ${s}</span>`;
-  if(s==='Pending')  return `<span class="pill warn"><i class="fa-solid fa-hourglass-half"></i> ${s}</span>`;
+  if(s==='Pending') return `<span class="pill warn"><i class="fa-solid fa-hourglass-half"></i> ${s}</span>`;
   if(s==='Refused - Closed') return `<span class="pill bad"><i class="fa-solid fa-circle-xmark"></i> ${s}</span>`;
   return `<span class="pill">${ESC(s||'—')}</span>`;
 }
 
+/* ===== RENDER LIST ===== */
 function render(){
   const q = EL('#q').value.toLowerCase().trim();
   const fs = EL('#flt_source').value;
@@ -409,7 +494,7 @@ function render(){
   const sort = EL('#sortBy').value;
 
   let arr = LEADS.filter(x=>{
-    const hay = (x.company+' '+(x.contact||'')+' '+(x.phone||'')+' '+(x.email||'')+' '+(x.nipt||'')).toLowerCase();
+    const hay = (x.company+' '+(x.contact||'')+' '+(x.phone||'')+' '+(x.email||'')).toLowerCase();
     const passQ = !q || hay.includes(q);
     const passS = !fs || x.source===fs;
     const passC = !fc || x.call_status===fc;
@@ -418,21 +503,23 @@ function render(){
     return passQ && passS && passC && passR && passM;
   });
 
-  if(sort==='created_desc') arr.sort((a,b)=> (b.created_at||'').localeCompare(a.created_at||'')); 
-  else if(sort==='created_asc') arr.sort((a,b)=> (a.created_at||'').localeCompare(b.created_at||'')); 
-  else if(sort==='company_asc') arr.sort((a,b)=> (a.company||'').localeCompare(b.company||'')); 
-  else if(sort==='company_desc') arr.sort((a,b)=> (b.company||'').localeCompare(a.company||'')); 
-  else if(sort==='next_desc') arr.sort((a,b)=> (a.next_follow_up||'9999').localeCompare(b.next_follow_up||'9999'));
+  if(sort==='created_desc') arr.sort((a,b)=> (b.created_at_ts||'').localeCompare(a.created_at_ts||''));
+  else if(sort==='created_asc') arr.sort((a,b)=> (a.created_at_ts||'').localeCompare(b.created_at_ts||''));
+  else if(sort==='company_asc') arr.sort((a,b)=> (a.company||'').localeCompare(b.company||''));
+  else if(sort==='company_desc') arr.sort((a,b)=> (b.company||'').localeCompare(a.company||''));
+  else if(sort==='next_desc') arr.sort((a,b)=> (a.next_follow_up||'9999-12-31').localeCompare(b.next_follow_up||'9999-12-31'));
 
   EL('#stats').textContent = `${arr.length} lead(e) · total: ${LEADS.length}`;
 
   EL('#rows').innerHTML = arr.map(x=>{
     const due = x.next_follow_up && x.next_follow_up <= todayStr() ? `<span class="due">Due</span>` : '';
-    const commentsCount = COMMENT_COUNTS[x.id] ?? 0;
+    const commentsCount = COUNTS.get(x.id) ?? 0;
     return `<tr>
-      <td><strong>${ESC(x.company)}</strong><br><span class="muted">${ESC(x.created_at||'')}</span></td>
+      <td>
+        <a href="#" onclick="openModal('${x.id}');return false;"><strong>${ESC(x.company)}</strong></a>
+        <br><span class="muted">${ESC((x.created_at||'').toString().slice(0,10))}</span>
+      </td>
       <td>${ESC(x.contact||'')}<br><span class="muted">${ESC(x.phone||'')} ${x.email? ' · '+ESC(x.email):''}</span></td>
-      <td>${ESC(x.nipt||'')}</td>
       <td><span class="tag">${ESC(x.source||'')}</span></td>
       <td>${badgeCall(x.call_status)}</td>
       <td>${badgeResult(x.answer_outcome)}</td>
@@ -445,103 +532,75 @@ function render(){
         <button class="btn" title="Hap" onclick="openModal('${x.id}')"><i class="fa-regular fa-pen-to-square"></i></button>
       </td>
     </tr>`;
-  }).join('') || `<tr><td colspan="11" class="muted">S'ka të dhëna.</td></tr>`;
+  }).join('') || `<tr><td colspan="10" class="muted">S'ka të dhëna.</td></tr>`;
 }
 
-/* Debounce për kërkim */
-let _deb; function debouncedRender(){ clearTimeout(_deb); _deb=setTimeout(render,150); }
-
-/* ===== UI: FORM (RPC 1-round-trip) ===== */
+/* ===== UI: ADD LEAD ===== */
 function clearForm(){
-  ['f_company','f_contact','f_phone','f_email','f_nipt','f_field_agent','f_meeting_date','f_notes'].forEach(id=> EL('#'+id).value='');
+  ['f_company','f_contact','f_phone','f_email','f_nipt','f_industry','f_activity','f_field_agent','f_meeting_date','f_notes'].forEach(id=> EL('#'+id).value='');
   EL('#f_source').value='QKB';
   EL('#f_call_status').value='Not answered';
   EL('#f_answer_outcome').value='';
 }
-
 async function addLead(){
-  const company = EL('#f_company').value.trim();
-  const contact = EL('#f_contact').value.trim();
-  const phone   = EL('#f_phone').value.trim();
-  const email   = EL('#f_email').value.trim();
-  const nipt    = EL('#f_nipt').value.trim();
-  const source  = EL('#f_source').value;
-  const call_status = EL('#f_call_status').value;
-  const answer_outcome = EL('#f_answer_outcome').value || null;
-  const field_agent = EL('#f_field_agent').value.trim();
-  const meeting_date = EL('#f_meeting_date').value || null;
-  const primeNote = EL('#f_notes').value.trim();
-
-  if(!company || !phone){ alert('Kompania dhe telefoni janë të detyrueshëm.'); return; }
-
-  const id = 'L'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4);
-  let nextFU = null;
-  if(answer_outcome==='Do ta eskaloj' || answer_outcome==='Do të mendohet'){ nextFU = todayStr(addDays(new Date(),3)); }
-  const meeting_status = meeting_date ? 'Pending' : null;
-
-  EL('#loading').style.display='inline-flex';
-
-  const { error } = await sb.rpc('add_lead_with_log', {
-    p_id: id,
-    p_created_at: todayStr(),
-    p_company: company,
-    p_contact: contact,
-    p_phone: phone,
-    p_email: email,
-    p_nipt: nipt,
-    p_source: source,
-    p_call_status: call_status,
-    p_answer_outcome: answer_outcome,
-    p_next_follow_up: nextFU,
-    p_meeting_status: meeting_status,
-    p_meeting_date: meeting_date || null,
-    p_field_agent: field_agent,
-    p_prime_note: primeNote
-  });
-
-  if(error){
-    console.error('RPC add_lead_with_log error:', error);
-    alert(`Shtimi dështoi: ${error.message || 'Shiko Console'}`);
-    EL('#loading').style.display='none';
+  const obj = {
+    id: 'L'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4),
+    created_at: todayStr(),
+    company: EL('#f_company').value.trim(),
+    contact: EL('#f_contact').value.trim(),
+    phone: EL('#f_phone').value.trim(),
+    email: EL('#f_email').value.trim(),
+    nipt: EL('#f_nipt').value.trim() || null,
+    industry: EL('#f_industry').value.trim() || null,
+    activity: EL('#f_activity').value.trim() || null,
+    source: EL('#f_source').value,
+    call_status: EL('#f_call_status').value,
+    answer_outcome: EL('#f_answer_outcome').value || null,
+    next_follow_up: null,
+    meeting_status: null,
+    meeting_date: EL('#f_meeting_date').value || null,
+    field_agent: EL('#f_field_agent').value.trim() || null,
+    _prime_note: EL('#f_notes').value.trim() || null
+  };
+  if(!obj.company || !obj.phone){
+    alert('Kompania dhe telefoni janë të detyrueshëm.');
     return;
   }
+  if(obj.answer_outcome==='Do ta eskaloj' || obj.answer_outcome==='Do të mendohet'){
+    obj.next_follow_up = todayStr(addDays(new Date(),3));
+  }
+  if(obj.meeting_date) obj.meeting_status = 'Pending';
 
-  /* Optimistic UI: shtoje menjëherë */
-  LEADS.unshift({
-    id, created_at: todayStr(), company, contact,
-    phone, email: email || null, nipt: nipt || null, source,
-    call_status, answer_outcome, next_follow_up: nextFU,
-    meeting_status, meeting_date: meeting_date || null, field_agent: field_agent || null
-  });
-  COMMENT_COUNTS[id] = (primeNote ? 1 : 0); // një log 'create' + koment prime nëse ekziston
-  render();
-  clearForm();
-
-  /* Rifresko nga DB për konsistencë + numërime reale */
+  EL('#loading').style.display='inline-flex';
+  await insertLead(obj);
   await refreshLeads();
   EL('#loading').style.display='none';
+  clearForm();
 }
 
-/* ===== MODAL ===== */
-let CURRENT_ID = null;
-
+/* ===== MODAL (Faqja e biznesit) ===== */
 async function openModal(id){
   CURRENT_ID = id;
   const x = LEADS.find(i=>i.id===id); if(!x) return;
+  // Header
   EL('#m_title').textContent = x.company;
-  EL('#m_meta').innerHTML = `${ESC(x.contact||'')} · <span class="muted">${ESC(x.phone||'')}</span>`;
+  EL('#m_meta').innerHTML = `${ESC(x.contact||'')} · <span class="muted">${ESC(x.phone||'')}</span> · <span class="muted">${ESC(x.email||'')}</span>`;
+  // Fushat
+  EL('#m_nipt').value = x.nipt || '';
+  EL('#m_industry').value = x.industry || '';
+  EL('#m_activity').value = x.activity || '';
   EL('#m_result').value = x.answer_outcome || '';
   EL('#m_next').value = x.next_follow_up || '';
   EL('#m_meeting_status').value = x.meeting_status || '';
   EL('#m_meeting_date').value = x.meeting_date || '';
   EL('#m_agent').value = x.field_agent || '';
   EL('#m_email').value = x.email || '';
+  EL('#m_phone').value = x.phone || '';
   EL('#m_comment').value = '';
 
+  // Komentet/historiku
   COMMENTS[id] = await fetchComments(id);
-  COMMENT_COUNTS[id] = (COMMENTS[id] || []).length; // sinkro numrin në listë
   renderTimeline(id);
-  render(); // përditëso kolonën 'Komente' në tabelë
 
   document.getElementById('modal').style.display='flex';
 }
@@ -551,7 +610,7 @@ function renderTimeline(id){
     const d = new Date(c.ts);
     const meta = c.kind==='comment' ? 'Koment' : (c.kind==='create' ? 'Krijuar' : 'Përditësim');
     const details = [
-      c.comment ? ESC(c.comment) : '',
+      c.comment ? `<div>${ESC(c.comment)}</div>` : '',
       c.new_result ? `<div><strong>Rezultat:</strong> ${ESC(c.new_result)}</div>` : '',
       c.next_follow_up ? `<div><strong>Follow-up:</strong> ${ESC(c.next_follow_up)}</div>` : '',
       c.meeting_status ? `<div><strong>Takimi:</strong> ${ESC(c.meeting_status)} ${c.meeting_date? ' · '+ESC(c.meeting_date):''}</div>` : '',
@@ -567,34 +626,25 @@ function renderTimeline(id){
 }
 function closeModal(){ document.getElementById('modal').style.display='none'; CURRENT_ID=null; }
 
-/* Mbyll modal-in me klik jashtë dhe me ESC */
-document.getElementById('modal').addEventListener('click', (e)=>{
-  if(e.target.id === 'modal') closeModal();
-});
-document.addEventListener('keydown', (e)=>{
-  if(e.key === 'Escape'){
-    const modal = document.getElementById('modal');
-    if(modal.style.display === 'flex') closeModal();
-  }
-});
-
-/* ===== SAVE MODAL ===== */
+/* ===== SAVE & QUICK FOLLOW ===== */
 async function saveModal(){
   const x = LEADS.find(i=>i.id===CURRENT_ID); if(!x) return;
 
   const newResult = EL('#m_result').value || null;
-  const nextFU    = EL('#m_next').value || null;
-  const mStatus   = EL('#m_meeting_status').value || null;
-  const mDate     = EL('#m_meeting_date').value || null;
-  const agent     = EL('#m_agent').value.trim() || null;
-  const email     = EL('#m_email').value.trim() || null;
-  const comment   = EL('#m_comment').value.trim();
+  const nextFU = EL('#m_next').value || null;
+  const mStatus = EL('#m_meeting_status').value || null;
+  const mDate = EL('#m_meeting_date').value || null;
+  const agent = EL('#m_agent').value.trim() || null;
+  const email = EL('#m_email').value.trim() || null;
+  const phone = EL('#m_phone').value.trim() || null;
+  const nipt = EL('#m_nipt').value.trim() || null;
+  const industry = EL('#m_industry').value.trim() || null;
+  const activity = EL('#m_activity').value.trim() || null;
+  const comment = EL('#m_comment').value.trim();
 
   const autoFU = (!nextFU && (newResult==='Do ta eskaloj' || newResult==='Do të mendohet')) ? todayStr(addDays(new Date(),3)) : null;
 
   EL('#loading').style.display='inline-flex';
-
-  /* 1) Log-o ndryshimet */
   await insertUpdate(x.id, {
     new_result: newResult,
     next_follow_up: nextFU || autoFU,
@@ -604,35 +654,32 @@ async function saveModal(){
     email: email,
     comment: comment || null
   });
-  if(comment){
-    await insertComment(x.id, comment);
-    COMMENT_COUNTS[x.id] = (COMMENT_COUNTS[x.id] || 0) + 1; // rrit lokalisht numrin e komenteve
-  }
+  if(comment){ await insertComment(x.id, comment); }
 
-  /* 2) (Opsionale) UPDATE rreshti – vetëm nëse ke aktivizuar policy UPDATE */
   await updateLeadFields(x.id, {
     answer_outcome: newResult,
     next_follow_up: nextFU || autoFU,
     meeting_status: mStatus,
     meeting_date: mDate,
     field_agent: agent,
-    email: email
+    email: email,
+    phone: phone,
+    nipt: nipt,
+    industry: industry,
+    activity: activity
   });
 
-  /* 3) Rifresko UI */
-  await refreshLeads();                  // merr edhe numërimet reale nga view
+  await refreshLeads();
   COMMENTS[x.id] = await fetchComments(x.id);
   renderTimeline(x.id);
   EL('#loading').style.display='none';
 }
-
-/* ===== QUICK FOLLOW-UP +3 ===== */
 async function quickFollow(id){
   const x = LEADS.find(i=>i.id===id); if(!x) return;
   const next = todayStr(addDays(new Date(),3));
   EL('#loading').style.display='inline-flex';
   await insertUpdate(id, { new_result: x.answer_outcome || null, next_follow_up: next });
-  await updateLeadFields(id, { next_follow_up: next }); // funksionon vetëm nëse ke policy UPDATE
+  await updateLeadFields(id, { next_follow_up: next });
   await refreshLeads();
   EL('#loading').style.display='none';
 }
@@ -645,7 +692,7 @@ function sendEmailTemplate(){
   const body = encodeURIComponent(
 `Përshëndetje ${x.contact||'—'},
 
-Ju falënderojmë për kohën në telefon. Siç u dakorduam, po ju përcjellim informacionin për shërbimet tona.
+Ju falënderojmë për kohën në telefon. Siç u dakorduam, po ju përcjellim informacionin për shërbimet tona. 
 Do të rikthehemi me një telefonatë follow-up brenda 3 ditësh (ose sipas mundësive tuaja).
 
 — Detaje:
@@ -691,83 +738,29 @@ function downloadICSMeeting(){
 
 /* ===== CSV ===== */
 function downloadCSV(){
-  const cols = ["id","created_at","company","nipt","contact","phone","email","source","call_status","answer_outcome","next_follow_up","meeting_status","meeting_date","field_agent"];
+  const cols = ["id","created_at","company","nipt","industry","activity","contact","phone","email","source","call_status","answer_outcome","next_follow_up","meeting_status","meeting_date","field_agent"];
   const lines = [cols.join(',')];
   LEADS.forEach(x=>{
-    const row = [x.id,x.created_at,x.company,x.nipt||'',x.contact||'',x.phone||'',x.email||'',x.source||'',x.call_status||'',x.answer_outcome||'',x.next_follow_up||'',x.meeting_status||'',x.meeting_date||'',x.field_agent||'']
+    const row = [x.id,x.created_at,x.company,x.nipt||'',x.industry||'',x.activity||'',x.contact||'',x.phone||'',x.email||'',x.source||'',x.call_status||'',x.answer_outcome||'',x.next_follow_up||'',x.meeting_status||'',x.meeting_date||'',x.field_agent||'']
       .map(v => `"${String(v??'').replace(/"/g,'""')}"`);
     lines.push(row.join(','));
   });
   const blob = new Blob([lines.join('\r\n')], {type:'text/csv;charset=utf-8;'});
   const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='adc_leads.csv'; a.click();
 }
-function importCSV(file){
-  if(!file) return;
-  const reader = new FileReader();
-  reader.onload = async e=>{
-    const text = e.target.result;
-    const rows = text.split(/\r?\n/).filter(Boolean);
-    rows.shift(); // header
-    const batch = [];
-    rows.forEach(line=>{
-      const cells = parseCSVLine(line);
-      batch.push({
-        id: cells[0]||('L'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4)),
-        created_at: cells[1]||todayStr(),
-        company: cells[2]||'',
-        nipt: cells[3]||null,
-        contact: cells[4]||'',
-        phone: cells[5]||'',
-        email: cells[6]||'',
-        source: cells[7]||'',
-        call_status: cells[8]||'',
-        answer_outcome: cells[9]||null,
-        next_follow_up: cells[10]||null,
-        meeting_status: cells[11]||null,
-        meeting_date: cells[12]||null,
-        field_agent: cells[13]||null
-      });
-    });
-    const { error } = await sb.from('leads').insert(batch);
-    if(error){ console.warn(error); alert('Import në DB dështoi.'); }
-    await refreshLeads();
-    alert('Import i përfunduar.');
-  };
-  reader.readAsText(file);
-}
-function parseCSVLine(line){
-  const out=[]; let cur=''; let q=false;
-  for(let i=0;i<line.length;i++){
-    const ch=line[i];
-    if(q){
-      if(ch=='"' && line[i+1]=='"'){ cur+='"'; i++; }
-      else if(ch=='"'){ q=false; }
-      else cur+=ch;
-    }else{
-      if(ch==','){ out.push(cur); cur=''; }
-      else if(ch=='"'){ q=true; }
-      else cur+=ch;
-    }
-  }
-  out.push(cur); return out;
-}
 
 /* ===== DATA FLOW ===== */
 async function refreshLeads(){
   EL('#loading').style.display='inline-flex';
-  const [leads, counts] = await Promise.all([fetchLeadsOnly(), fetchCommentCounts()]);
+  [LEADS, COUNTS] = await Promise.all([ fetchLeads(), fetchCounts() ]);
   EL('#loading').style.display='none';
-
-  LEADS = leads;
-  COMMENT_COUNTS = {};
-  (counts||[]).forEach(r => { COMMENT_COUNTS[r.lead_id] = r.comments || 0; });
-
   render();
 }
 
 /* ===== INIT ===== */
 document.addEventListener('DOMContentLoaded', async ()=>{
-  await refreshLeads();
+  const ok = await requireSession();
+  if(ok){ await refreshLeads(); }
 });
 </script>
 </body>
