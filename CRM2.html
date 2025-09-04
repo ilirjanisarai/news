@@ -10,51 +10,30 @@
 <style>
   :root{
     --brand:#2563eb; --brand-2:#1d4ed8; --ok:#16a34a; --warn:#d97706; --bad:#b91c1c;
-    --text:#0b1220; --muted:#6b7280; --line:#e5e7eb; --surface:#ffffff; --surface-2:#f8fafc;
-    --shadow:0 10px 30px rgba(2,8,23,.06); --radius:16px;
+    --text:#0b1220; --muted:#6b7280; --line:#e5e7eb; --surface:#fff; --surface-2:#f8fafc;
+    --shadow:0 14px 34px rgba(2,8,23,.10); --radius:14px;
   }
   @media (prefers-color-scheme: dark){
-    :root{ --text:#e5e7eb; --muted:#9ca3af; --line:#1f2937; --surface:#0b1220; --surface-2:#111827; --shadow:0 18px 36px rgba(0,0,0,.38);}
+    :root{ --text:#e5e7eb; --muted:#9ca3af; --line:#1f2937; --surface:#111827; --surface-2:#0b1220; --shadow:0 18px 36px rgba(0,0,0,.38); }
+    body{ background:linear-gradient(160deg,#0b1220 0%,#0f172a 100%) }
   }
   *{box-sizing:border-box}
-  body{
-    margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Arial;
-    color:var(--text);
-    background:
-      radial-gradient(80% 120% at -10% -10%, rgba(37,99,235,.10), transparent 60%),
-      radial-gradient(80% 120% at 110% -10%, rgba(29,78,216,.10), transparent 60%),
-      linear-gradient(160deg,#f8fbff 0%,#f6f8fc 100%);
-  }
-  header{
-    position:sticky; top:0; z-index:10;
-    background:linear-gradient(120deg,rgba(37,99,235,.12),rgba(37,99,235,.08));
-    border-bottom:1px solid var(--line);
-    backdrop-filter:blur(8px)
-  }
-  .wrap{max-width:1200px; margin:0 auto; padding:16px}
-  h1{margin:0; font-size:20px; font-weight:800; letter-spacing:.2px}
-  .grid{display:grid; gap:16px}
+  body{margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Arial; color:var(--text); background:linear-gradient(160deg,#f7fbff 0%,#f5f7fb 100%)}
+  header{position:sticky; top:0; z-index:10; background:linear-gradient(120deg,rgba(37,99,235,.10),rgba(37,99,235,.08)); border-bottom:1px solid var(--line); backdrop-filter:blur(8px)}
+  .wrap{max-width:1250px; margin:0 auto; padding:16px}
+  h1{margin:0; font-size:20px; font-weight:800}
+  .grid{display:grid; gap:14px}
   .two{grid-template-columns:1fr}
-  .card{
-    background:var(--surface); border:1px solid var(--line);
-    border-radius:var(--radius); box-shadow:var(--shadow); padding:16px
-  }
-  label{font-weight:800; font-size:12px; color:var(--muted); letter-spacing:.2px}
-  input,select,textarea{
-    width:100%; padding:12px 12px; border:1px solid var(--line);
-    border-radius:12px; background:var(--surface-2); outline:none;
-  }
-  input:focus,select:focus,textarea:focus{ box-shadow:0 0 0 3px rgba(37,99,235,.15); border-color:#c7d2fe }
-  textarea{min-height:80px}
-  .row{display:grid; grid-template-columns:repeat(4,1fr); gap:12px}
-  .row-3{display:grid; grid-template-columns:repeat(3,1fr); gap:12px}
-  .row-2{display:grid; grid-template-columns:repeat(2,1fr); gap:12px}
-  .btn{
-    display:inline-flex; align-items:center; gap:8px; border:1px solid var(--line);
-    border-radius:12px; padding:10px 12px; cursor:pointer; background:var(--surface);
-    font-weight:800; transition:.15s transform ease, .15s box-shadow ease
-  }
-  .btn:hover{ transform:translateY(-1px); box-shadow:0 6px 16px rgba(2,8,23,.08)}
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:14px}
+  label{font-weight:800; font-size:12px; color:var(--muted)}
+  input,select,textarea{width:100%; padding:11px 12px; border:1px solid var(--line); border-radius:12px; background:var(--surface-2); outline:none}
+  input:focus,select:focus,textarea:focus{border-color:var(--brand); box-shadow:0 0 0 3px rgba(37,99,235,.15)}
+  textarea{min-height:92px}
+  .row{display:grid; grid-template-columns:repeat(4,1fr); gap:10px}
+  .row-3{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
+  .row-2{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
+  .btn{display:inline-flex; align-items:center; gap:8px; border:1px solid var(--line); border-radius:12px; padding:10px 12px; cursor:pointer; background:var(--surface); font-weight:800; transition:transform .04s ease, opacity .2s}
+  .btn:hover{transform:translateY(-1px)}
   .btn.primary{background:linear-gradient(180deg,var(--brand),var(--brand-2)); color:#fff; border-color:transparent}
   .btn.ok{background:linear-gradient(180deg,var(--ok),#15803d); color:#fff; border-color:transparent}
   .btn.warn{background:linear-gradient(180deg,var(--warn),#b45309); color:#fff; border-color:transparent}
@@ -64,32 +43,34 @@
   th,td{padding:12px 12px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; font-size:14px}
   th{font-size:12px; color:var(--muted)}
   tr:hover td{background:rgba(37,99,235,.05)}
-  .pill{display:inline-flex; align-items:center; gap:6px; padding:4px 8px; border-radius:999px; font-size:12px; border:1px solid var(--line); background:#eef2ff; color:#1d4ed8}
+  .pill{display:inline-flex; align-items:center; gap:6px; padding:4px 10px; border-radius:999px; font-size:12px; border:1px solid var(--line); background:#eef2ff; color:#1d4ed8}
   .pill.ok{background:#dcfce7; color:#166534}
   .pill.bad{background:#fee2e2; color:#7f1d1d}
   .pill.warn{background:#fff7ed; color:#92400e}
   .muted{color:var(--muted); font-size:12px}
-  .tag{display:inline-block; padding:3px 8px; border-radius:999px; border:1px solid var(--line); font-size:11px; background:#f1f5f9}
-  .due{color:#fff; background:#ef4444; padding:2px 6px; border-radius:8px; font-weight:800; font-size:11px}
+  .tag{display:inline-block; padding:4px 8px; border-radius:999px; border:1px solid var(--line); font-size:11px; background:#f1f5f9}
+  .due{color:#fff; background:#ef4444; padding:2px 8px; border-radius:999px; font-weight:800; font-size:11px}
   .table-scroll{width:100%; overflow:auto}
   .hide{display:none}
   #loading{display:none; align-items:center; gap:8px; font-weight:800}
 
   /* ===== Overlay Auth ===== */
-  #auth{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.06);backdrop-filter:blur(4px);z-index:9999}
-  #auth .panel{width:380px;max-width:94%;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:18px}
+  #auth{position:fixed;inset:0;display:none;align-items:center;justify-content:center;background:rgba(0,0,0,.08);backdrop-filter:blur(5px);z-index:9999}
+  #auth .panel{width:380px;max-width:94%;background:var(--surface);border:1px solid var(--line);border-radius:16px;box-shadow:var(--shadow);padding:16px}
+  #auth h3{margin:0 0 8px 0;font-size:18px;font-weight:800}
 
   /* ===== Modal (Faqja e Biznesit) ===== */
   .modal{position:fixed; inset:0; background:rgba(0,0,0,.55); display:none; align-items:center; justify-content:center; padding:18px; z-index:1000}
-  .panel{max-width:900px; width:100%; background:var(--surface); border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow); display:flex; flex-direction:column; max-height:90vh}
+  .panel{max-width:980px; width:100%; background:var(--surface); border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow); display:flex; flex-direction:column; max-height:90vh}
   .panel .head{position:sticky; top:0; background:var(--surface); border-bottom:1px solid var(--line); padding:14px; display:flex; align-items:center; justify-content:space-between; gap:8px; z-index:1}
   .panel .body{padding:14px; overflow:auto}
   .flex{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
   .right{display:flex; gap:8px; justify-content:flex-end}
   .nowrap{white-space:nowrap}
 
-  /* toast */
-  #toast{position:fixed; bottom:16px; right:16px; background:var(--surface); border:1px solid var(--line); box-shadow:var(--shadow); border-radius:12px; padding:10px 12px; display:none; z-index:1100}
+  /* Toast */
+  #toast{position:fixed; right:18px; bottom:18px; z-index:2000; display:none}
+  .toast{background:var(--surface); border:1px solid var(--line); box-shadow:var(--shadow); padding:10px 12px; border-radius:12px; font-weight:700}
 </style>
 </head>
 <body>
@@ -369,19 +350,22 @@
 <!-- ===== Overlay: Supabase Auth ===== -->
 <div id="auth">
   <div class="panel">
-    <h3 style="margin:0 0 8px 0;font-size:18px;font-weight:800">Hyrje në Mini-CRM</h3>
+    <h3>Hyrje në Mini-CRM</h3>
     <div style="color:var(--muted);font-size:12px;margin-bottom:10px">Identifikohu me email dhe fjalëkalim.</div>
-    <input id="auth_email" type="email" placeholder="email" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin-bottom:8px">
-    <input id="auth_pwd" type="password" placeholder="fjalëkalim" style="width:100%;padding:10px 12px;border:1px solid var(--line);border-radius:10px;margin-bottom:10px">
-    <div style="display:flex;gap:8px;justify-content:flex-end">
-      <button class="btn" onclick="signIn()">Hyr</button>
-      <button class="btn" onclick="signUp()">Krijo</button>
+    <input id="auth_email" type="email" placeholder="email" style="width:100%;margin-bottom:8px">
+    <input id="auth_pwd" type="password" placeholder="fjalëkalim" style="width:100%;margin-bottom:10px">
+    <div style="display:flex;gap:8px;justify-content:space-between;align-items:center">
+      <span id="auth_msg" style="color:#b91c1c;font-size:12px"></span>
+      <span>
+        <button class="btn" onclick="signIn()">Hyr</button>
+        <button class="btn" onclick="signUp()">Krijo</button>
+      </span>
     </div>
-    <div id="auth_msg" style="color:#b91c1c;font-size:12px;margin-top:8px"></div>
   </div>
 </div>
 
-<div id="toast"></div>
+<!-- Toast -->
+<div id="toast"><div class="toast" id="toast_msg"></div></div>
 
 <!-- Supabase SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -389,8 +373,7 @@
 <script>
 /* ===== KONFIGURIM SUPABASE ===== */
 const SUPABASE_URL = 'https://cpkyagcuowjvofgcgdwx.supabase.co';
-const SUPABASE_ANON_KEY =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwa3lhZ2N1b3dqdm9mZ2NnZHd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4MjI3OTksImV4cCI6MjA3MjM5ODc5OX0.NqgKif1QO3vtigZ9eWRc8JuJLCw6JoeRIcqWwzXCIQs';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwa3lhZ2N1b3dqdm9mZ2NnZHd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4MjI3OTksImV4cCI6MjA3MjM5ODc5OX0.NqgKif1QO3vtigZ9eWRc8JuJLCw6JoeRIcqWwzXCIQs';
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 /* ===== STATE ===== */
@@ -402,20 +385,25 @@ const EL = sel => document.querySelector(sel);
 const ESC = s => (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;', "'":'&#39;' }[m]));
 
 /* ===== UTIL ===== */
-function toast(msg){ const t=EL('#toast'); t.textContent=msg; t.style.display='block'; setTimeout(()=>t.style.display='none',2200); }
 function todayStr(d=new Date()){ const z=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate()); }
 function addDays(date,days){ const d=new Date(date); d.setDate(d.getDate()+days); return d; }
+function toast(msg){
+  const c = EL('#toast'); const t = EL('#toast_msg');
+  t.textContent = msg; c.style.display='block';
+  setTimeout(()=> c.style.display='none', 2000);
+}
 
 /* ===== AUTH ===== */
 async function requireSession(){
   const { data: { session } } = await sb.auth.getSession();
   if(session){
     EL('#auth').style.display='none';
-    EL('#user_slot').textContent = '• ' + (session.user?.email || '');
+    const u = session.user?.email || '';
+    const slot = EL('#user_slot');
+    if(slot) slot.textContent = u ? ('• ' + u) : '';
     return true;
   } else {
     EL('#auth').style.display='flex';
-    EL('#user_slot').textContent = '';
     return false;
   }
 }
@@ -439,80 +427,139 @@ async function signOut(){
   EL('#user_slot').textContent='';
 }
 sb.auth.onAuthStateChange(async (_evt, session) => {
-  if(session){ EL('#auth').style.display='none'; EL('#user_slot').textContent = '• ' + (session.user?.email || ''); await refreshLeads(); }
-  else{ EL('#auth').style.display='flex'; EL('#user_slot').textContent=''; }
+  if(session){ EL('#auth').style.display='none'; await refreshLeads(); }
+  else{ EL('#auth').style.display='flex'; }
 });
+// Enter për login
+['auth_email','auth_pwd'].forEach(id=>{
+  const node = () => document.getElementById(id);
+  document.addEventListener('keydown', e=>{
+    if(EL('#auth').style.display!=='none' && e.key==='Enter'){ signIn(); }
+  });
+});
+
+/* ===== TIMEOUT helper ===== */
+function withTimeout(promise, ms=10000, label='Operacioni') {
+  let t;
+  const timeout = new Promise((_, reject) => {
+    t = setTimeout(() => reject(new Error(label + ' skadoi (timeout)')), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(t));
+}
 
 /* ===== DB: COUNTS (view lead_comment_counts) ===== */
 async function fetchCounts(){
   try{
-    const { data, error } = await sb.from('lead_comment_counts').select('*');
+    const { data, error } = await withTimeout(
+      sb.from('lead_comment_counts').select('*'),
+      8000, 'Leximi i numrit të komenteve'
+    );
     if(error){ console.warn('[counts]', error); return new Map(); }
     const map = new Map();
     (data||[]).forEach(r => map.set(r.lead_id, r.comments||0));
     return map;
   }catch(err){
-    console.warn('[counts: exception]', err);
+    console.warn('[counts timeout/exception]', err);
     return new Map();
   }
 }
 
-/* ===== DB: LEADS (fallback i sigurt) ===== */
+/* ===== DB: LEADS ===== */
 async function fetchLeads(){
   try{
     const selCols = 'id, created_at, created_at_ts, company, contact, phone, email, source, call_status, answer_outcome, next_follow_up, meeting_status, meeting_date, field_agent, nipt, industry, activity';
 
-    // A) Renditje me created_at (ekziston në skemë)
-    let q = sb.from('leads').select(selCols).order('created_at', { ascending:false });
-    let { data, error } = await q;
-    if(!error && Array.isArray(data)) return data;
+    // A) order by created_at
+    let res = await withTimeout(
+      sb.from('leads').select(selCols).order('created_at', { ascending:false }),
+      10000, 'Leximi i leads'
+    );
+    if(!res.error && Array.isArray(res.data)) return res.data;
 
-    // B) Provo created_at_ts
-    ({ data, error } = await sb.from('leads').select(selCols).order('created_at_ts', { ascending:false }));
-    if(!error && Array.isArray(data)) return data;
+    // B) order by created_at_ts
+    res = await withTimeout(
+      sb.from('leads').select(selCols).order('created_at_ts', { ascending:false }),
+      10000, 'Leximi i leads (ts)'
+    );
+    if(!res.error && Array.isArray(res.data)) return res.data;
 
-    // C) Pa renditje
-    ({ data, error } = await sb.from('leads').select(selCols));
-    if(error){ throw error; }
-    return data || [];
+    // C) pa renditje
+    res = await withTimeout(
+      sb.from('leads').select(selCols),
+      10000, 'Leximi i leads (pa renditje)'
+    );
+    if(res.error) throw res.error;
+    return res.data || [];
   }catch(err){
     console.error('[fetchLeads]', err);
-    alert('Nuk u lexuan lead-et nga DB. Kontrollo RLS (SELECT) dhe kolonat.');
+    alert('Nuk u lexuan lead-et: ' + (err?.message || err));
     return [];
   }
 }
-
-/* ===== INSERT/UPDATE helpers (me try/finally që të mos ngecë loader) ===== */
 async function insertLead(obj){
   try{
-    const { error } = await sb.from('leads').insert([obj]);
+    const payload = {
+      id: obj.id,
+      created_at: obj.created_at,
+      company: obj.company,
+      contact: obj.contact || null,
+      phone: obj.phone,
+      email: obj.email || null,
+      source: obj.source || null,
+      call_status: obj.call_status || null,
+      answer_outcome: obj.answer_outcome || null,
+      next_follow_up: obj.next_follow_up || null,
+      meeting_status: obj.meeting_status || null,
+      meeting_date: obj.meeting_date || null,
+      field_agent: obj.field_agent || null,
+      nipt: obj.nipt || null,
+      industry: obj.industry || null,
+      activity: obj.activity || null
+    };
+
+    const { data, error } = await withTimeout(
+      sb.from('leads').insert([payload]).select('id').single(),
+      10000, 'Shtimi i lead'
+    );
     if(error) throw error;
 
-    // log "create" (nëse e lejon RLS)
-    try{
-      await sb.from('lead_updates').insert([{ lead_id: obj.id, kind:'create', comment:(obj._prime_note||null) }]);
-    }catch(e){
-      console.warn('[lead_updates create] skipped:', e?.message || e);
+    if(obj._prime_note){
+      const { error: updErr } = await withTimeout(
+        sb.from('lead_updates').insert([{ lead_id: obj.id, kind:'create', comment: obj._prime_note }]),
+        7000, 'Logimi i create'
+      );
+      if(updErr) console.warn('[lead_updates create] skipped:', updErr.message || updErr);
     }
+
+    return data?.id;
   }catch(err){
     console.error('[insertLead]', err);
-    alert('Shtimi në DB dështoi. Kontrollo RLS (INSERT) dhe kolonat.');
+    const msg = err?.message || String(err);
+    alert('Shtimi i lead dështoi: ' + msg + '\nKontrollo RLS (INSERT) dhe kolonat.');
+    throw err;
   }
 }
 async function updateLeadFields(id, fields){
   try{
-    const { error } = await sb.from('leads').update(fields).eq('id', id);
+    const { error } = await withTimeout(
+      sb.from('leads').update(fields).eq('id', id),
+      10000, 'Përditësimi i lead'
+    );
     if(error) throw error;
   }catch(err){
     console.warn('[updateLeadFields]', err);
-    alert('UPDATE dështoi. Vendos RLS për UPDATE te leads.');
+    alert('UPDATE dështoi: ' + (err?.message || err));
+    throw err;
   }
 }
 
 /* ===== DB: UPDATES/COMMENTS ===== */
 async function fetchComments(lead_id){
   try{
-    const { data, error } = await sb.from('lead_updates').select('*').eq('lead_id', lead_id).order('ts',{ascending:false});
+    const { data, error } = await withTimeout(
+      sb.from('lead_updates').select('*').eq('lead_id', lead_id).order('ts',{ascending:false}),
+      8000, 'Leximi i komenteve'
+    );
     if(error){ console.warn('[fetchComments]', error); return []; }
     return data||[];
   }catch(err){
@@ -523,24 +570,30 @@ async function fetchComments(lead_id){
 async function insertUpdate(lead_id, payload){
   try{
     const row = Object.assign({ lead_id, kind:'update' }, payload);
-    const { error } = await sb.from('lead_updates').insert([row]);
+    const { error } = await withTimeout(
+      sb.from('lead_updates').insert([row]),
+      8000, 'Ruajtja e update'
+    );
     if(error) throw error;
   }catch(err){
     console.warn('[insertUpdate]', err);
-    alert('Nuk u ruajt përditësimi (lead_updates).');
+    alert('Nuk u ruajt përditësimi (lead_updates): ' + (err?.message || err));
   }
 }
 async function insertComment(lead_id, text){
   try{
-    const { error } = await sb.from('lead_updates').insert([{ lead_id, kind:'comment', comment:text }]);
+    const { error } = await withTimeout(
+      sb.from('lead_updates').insert([{ lead_id, kind:'comment', comment:text }]),
+      8000, 'Ruajtja e komentit'
+    );
     if(error) throw error;
   }catch(err){
     console.warn('[insertComment]', err);
-    alert('Nuk u ruajt komenti (lead_updates).');
+    alert('Nuk u ruajt komenti (lead_updates): ' + (err?.message || err));
   }
 }
 
-/* ===== BADGES ===== */
+/* ===== BADGES & RENDER LIST ===== */
 function badgeCall(s){
   if(s==='Answered') return `<span class="pill ok"><i class="fa-solid fa-phone"></i> ${s}</span>`;
   if(s==='Not answered') return `<span class="pill warn"><i class="fa-solid fa-phone-slash"></i> ${s}</span>`;
@@ -560,15 +613,13 @@ function badgeMeeting(s){
   if(s==='Refused - Closed') return `<span class="pill bad"><i class="fa-solid fa-circle-xmark"></i> ${s}</span>`;
   return `<span class="pill">${ESC(s||'—')}</span>`;
 }
-
-/* ===== RENDER LIST ===== */
 function render(){
-  const q = (EL('#q')?.value || '').toLowerCase().trim();
-  const fs = EL('#flt_source')?.value || '';
-  const fc = EL('#flt_call')?.value || '';
-  const fr = EL('#flt_result')?.value || '';
-  const fm = EL('#flt_meeting')?.value || '';
-  const sort = EL('#sortBy')?.value || 'created_desc';
+  const q = EL('#q').value.toLowerCase().trim();
+  const fs = EL('#flt_source').value;
+  const fc = EL('#flt_call').value;
+  const fr = EL('#flt_result').value;
+  const fm = EL('#flt_meeting').value;
+  const sort = EL('#sortBy').value;
 
   let arr = LEADS.filter(x=>{
     const hay = (x.company+' '+(x.contact||'')+' '+(x.phone||'')+' '+(x.email||'')).toLowerCase();
@@ -580,8 +631,8 @@ function render(){
     return passQ && passS && passC && passR && passM;
   });
 
-  if(sort==='created_desc') arr.sort((a,b)=> (b.created_at_ts||b.created_at||'').toString().localeCompare((a.created_at_ts||a.created_at||'').toString()));
-  else if(sort==='created_asc') arr.sort((a,b)=> (a.created_at_ts||a.created_at||'').toString().localeCompare((b.created_at_ts||b.created_at||'').toString()));
+  if(sort==='created_desc') arr.sort((a,b)=> (b.created_at_ts||b.created_at||'').localeCompare(a.created_at_ts||a.created_at||''));
+  else if(sort==='created_asc') arr.sort((a,b)=> (a.created_at_ts||a.created_at||'').localeCompare(b.created_at_ts||b.created_at||''));
   else if(sort==='company_asc') arr.sort((a,b)=> (a.company||'').localeCompare(b.company||'')); 
   else if(sort==='company_desc') arr.sort((a,b)=> (b.company||'').localeCompare(a.company||'')); 
   else if(sort==='next_desc') arr.sort((a,b)=> (a.next_follow_up||'9999-12-31').localeCompare(b.next_follow_up||'9999-12-31'));
@@ -612,9 +663,9 @@ function render(){
   }).join('') || `<tr><td colspan="10" class="muted">S'ka të dhëna.</td></tr>`;
 }
 
-/* ===== UI: ADD LEAD (with bugfix: always hide loader + toast) ===== */
+/* ===== UI: ADD LEAD ===== */
 function clearForm(){
-  ['f_company','f_contact','f_phone','f_email','f_nipt','f_industry','f_activity','f_field_agent','f_meeting_date','f_notes'].forEach(id=> { const el=EL('#'+id); if(el) el.value=''; });
+  ['f_company','f_contact','f_phone','f_email','f_nipt','f_industry','f_activity','f_field_agent','f_meeting_date','f_notes'].forEach(id=> EL('#'+id).value='');
   EL('#f_source').value='QKB';
   EL('#f_call_status').value='Not answered';
   EL('#f_answer_outcome').value='';
@@ -655,8 +706,7 @@ async function addLead(){
     clearForm();
     toast('Lead u shtua.');
   }catch(err){
-    console.error('[addLead outer]', err);
-    alert('Shtimi dështoi.');
+    // mesazhi i gabimit jepet brenda insertLead/refreshLeads
   }finally{
     EL('#loading').style.display='none';
   }
@@ -683,7 +733,7 @@ async function openModal(id){
   COMMENTS[id] = await fetchComments(id);
   renderTimeline(id);
 
-  EL('#modal').style.display='flex';
+  document.getElementById('modal').style.display='flex';
 }
 function renderTimeline(id){
   const arr = COMMENTS[id] || [];
@@ -703,9 +753,9 @@ function renderTimeline(id){
       <div>${details || '<em class="muted">—</em>'}</div>
     </div>`;
   }).join('');
-  EL('#m_timeline').innerHTML = html || `<div class="muted">S’ka komente ende.</div>`;
+  document.getElementById('m_timeline').innerHTML = html || `<div class="muted">S’ka komente ende.</div>`;
 }
-function closeModal(){ EL('#modal').style.display='none'; CURRENT_ID=null; }
+function closeModal(){ document.getElementById('modal').style.display='none'; CURRENT_ID=null; }
 
 /* ===== SAVE & QUICK FOLLOW ===== */
 async function saveModal(){
@@ -715,13 +765,13 @@ async function saveModal(){
   const nextFU = EL('#m_next').value || null;
   const mStatus = EL('#m_meeting_status').value || null;
   const mDate = EL('#m_meeting_date').value || null;
-  const agent = (EL('#m_agent').value||'').trim() || null;
-  const email = (EL('#m_email').value||'').trim() || null;
-  const phone = (EL('#m_phone').value||'').trim() || null;
-  const nipt = (EL('#m_nipt').value||'').trim() || null;
-  const industry = (EL('#m_industry').value||'').trim() || null;
-  const activity = (EL('#m_activity').value||'').trim() || null;
-  const comment = (EL('#m_comment').value||'').trim();
+  const agent = EL('#m_agent').value.trim() || null;
+  const email = EL('#m_email').value.trim() || null;
+  const phone = EL('#m_phone').value.trim() || null;
+  const nipt = EL('#m_nipt').value.trim() || null;
+  const industry = EL('#m_industry').value.trim() || null;
+  const activity = EL('#m_activity').value.trim() || null;
+  const comment = EL('#m_comment').value.trim();
 
   const autoFU = (!nextFU && (newResult==='Do ta eskaloj' || newResult==='Do të mendohet')) ? todayStr(addDays(new Date(),3)) : null;
 
@@ -757,7 +807,7 @@ async function saveModal(){
     toast('U ruajt.');
   }catch(err){
     console.error('[saveModal]', err);
-    alert('Ruajtja dështoi.');
+    // alert jepet nga helpers
   }finally{
     EL('#loading').style.display='none';
   }
@@ -770,9 +820,9 @@ async function quickFollow(id){
     await insertUpdate(id, { new_result: x.answer_outcome || null, next_follow_up: next });
     await updateLeadFields(id, { next_follow_up: next });
     await refreshLeads();
+    toast('Follow-up +3 ditë.');
   }catch(err){
     console.error('[quickFollow]', err);
-    alert('S’përditësua follow-up.');
   }finally{
     EL('#loading').style.display='none';
   }
@@ -847,13 +897,16 @@ function downloadCSV(){
 async function refreshLeads(){
   EL('#loading').style.display='inline-flex';
   try{
-    const [leads, counts] = await Promise.all([ fetchLeads(), fetchCounts() ]);
+    const [leads, counts] = await withTimeout(
+      Promise.all([ fetchLeads(), fetchCounts() ]),
+      12000, 'Rifreskimi i të dhënave'
+    );
     LEADS = Array.isArray(leads) ? leads : [];
     COUNTS = counts instanceof Map ? counts : new Map();
     render();
   }catch(err){
     console.error('[refreshLeads]', err);
-    alert('Gabim gjatë rifreskimit të të dhënave.');
+    alert('Rifreskimi i të dhënave dështoi: ' + (err?.message || err));
   }finally{
     EL('#loading').style.display='none';
   }
