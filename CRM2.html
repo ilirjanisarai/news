@@ -7,51 +7,38 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css"/>
+
 <style>
   :root{
     --brand:#2563eb; --brand-2:#1d4ed8; --ok:#16a34a; --warn:#d97706; --bad:#b91c1c;
     --text:#0b1220; --muted:#6b7280; --line:#e5e7eb; --surface:#fff; --surface-2:#f8fafc;
-    --glow: 0 10px 30px rgba(37,99,235,.18);
-    --shadow:0 14px 34px rgba(2,8,23,.10); --radius:14px;
+    --shadow:0 14px 36px rgba(2,8,23,.10); --radius:16px;
   }
   @media (prefers-color-scheme: dark){
-    :root{ --text:#e5e7eb; --muted:#9ca3af; --line:#1f2937; --surface:#111827; --surface-2:#0b1220; --shadow:0 22px 46px rgba(0,0,0,.38); }
+    :root{ --text:#e5e7eb; --muted:#9ca3af; --line:#1f2937; --surface:#111827; --surface-2:#0b1220; --shadow:0 20px 40px rgba(0,0,0,.4); }
   }
   *{box-sizing:border-box}
   body{
     margin:0; font-family:Inter,system-ui,Segoe UI,Roboto,Arial; color:var(--text);
     background:
-      radial-gradient(900px 380px at -10% -10%, rgba(37,99,235,.10), transparent 60%),
-      linear-gradient(160deg,#f7fbff 0%,#f5f7fb 100%);
+      radial-gradient(1200px 600px at -10% -20%, rgba(37,99,235,.08), transparent 60%),
+      radial-gradient(900px 500px at 120% -10%, rgba(29,78,216,.06), transparent 60%),
+      linear-gradient(160deg,#f7fbff 0%,#f5f7fb 100%)
   }
-  header{
-    position:sticky; top:0; z-index:10;
-    background:linear-gradient(120deg,rgba(37,99,235,.10),rgba(37,99,235,.08));
-    border-bottom:1px solid var(--line); backdrop-filter:blur(8px)
-  }
+  header{position:sticky; top:0; z-index:10; background:linear-gradient(120deg,rgba(37,99,235,.10),rgba(37,99,235,.08)); border-bottom:1px solid var(--line); backdrop-filter:blur(8px)}
   .wrap{max-width:1200px; margin:0 auto; padding:16px}
-  h1{margin:0; font-size:20px; font-weight:800; letter-spacing:.2px}
+  h1{margin:0; font-size:20px; font-weight:800}
   .grid{display:grid; gap:14px}
   .two{grid-template-columns:1fr}
-  .card{
-    background:var(--surface); border:1px solid var(--line); border-radius:var(--radius);
-    box-shadow:var(--shadow); padding:16px
-  }
-  .card:hover{ box-shadow:var(--glow) }
+  .card{background:var(--surface); border:1px solid var(--line); border-radius:var(--radius); box-shadow:var(--shadow); padding:14px}
   label{font-weight:800; font-size:12px; color:var(--muted)}
-  input,select,textarea{
-    width:100%; padding:10px 12px; border:1px solid var(--line);
-    border-radius:10px; background:var(--surface-2); outline:none
-  }
-  input:focus,select:focus,textarea:focus{ box-shadow:0 0 0 3px rgba(37,99,235,.18) }
+  input,select,textarea{width:100%; padding:10px 12px; border:1px solid var(--line); border-radius:10px; background:var(--surface-2)}
   textarea{min-height:80px}
   .row{display:grid; grid-template-columns:repeat(4,1fr); gap:10px}
   .row-3{display:grid; grid-template-columns:repeat(3,1fr); gap:10px}
   .row-2{display:grid; grid-template-columns:repeat(2,1fr); gap:10px}
-  .btn{
-    display:inline-flex; align-items:center; gap:8px; border:1px solid var(--line);
-    border-radius:10px; padding:10px 12px; cursor:pointer; background:var(--surface); font-weight:800
-  }
+  .btn{display:inline-flex; align-items:center; gap:8px; border:1px solid var(--line); border-radius:12px; padding:10px 12px; cursor:pointer; background:var(--surface); font-weight:800; transition:.15s transform,.15s box-shadow}
+  .btn:hover{transform:translateY(-1px); box-shadow:0 6px 18px rgba(2,8,23,.10)}
   .btn.primary{background:linear-gradient(180deg,var(--brand),var(--brand-2)); color:#fff; border-color:transparent}
   .btn.ok{background:linear-gradient(180deg,var(--ok),#15803d); color:#fff; border-color:transparent}
   .btn.warn{background:linear-gradient(180deg,var(--warn),#b45309); color:#fff; border-color:transparent}
@@ -84,14 +71,6 @@
   .flex{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
   .right{display:flex; gap:8px; justify-content:flex-end}
   .nowrap{white-space:nowrap}
-
-  @media (max-width: 960px){
-    .row{grid-template-columns:1fr 1fr}
-    .row-3{grid-template-columns:1fr 1fr}
-  }
-  @media (max-width: 640px){
-    .row,.row-3,.row-2{grid-template-columns:1fr}
-  }
 </style>
 </head>
 <body>
@@ -99,7 +78,7 @@
   <div class="wrap" style="display:flex; align-items:center; justify-content:space-between; gap:12px">
     <div>
       <h1><i class="fa-solid fa-address-book"></i> ADC · Mini CRM</h1>
-      <div class="muted">Kërkon login · Të dhënat nga Supabase</div>
+      <div class="muted">Kërkon login · Shfaqet për këdo të loguar</div>
     </div>
     <div class="toolbar">
       <div id="loading" class="muted"><i class="fa-solid fa-spinner fa-spin"></i> Duke ngarkuar…</div>
@@ -112,52 +91,28 @@
 </header>
 
 <main class="wrap grid two" id="app">
-  <!-- SHTO LEAD (SIPËR) -->
+  <!-- SHTO LEAD -->
   <section class="card">
     <div class="flex" style="justify-content:space-between">
       <h2 style="margin:0;font-size:16px">Shto lead</h2>
-      <div class="muted">Fusha <strong>NIPT</strong>, <strong>Industry</strong> dhe <strong>Activity</strong> janë opsionale.</div>
+      <div class="muted">Fushat <strong>NIPT</strong>, <strong>Industry</strong>, <strong>Activity</strong> janë opsionale.</div>
     </div>
     <div class="grid" style="margin-top:10px">
       <div class="row">
-        <div>
-          <label>Emri i kompanisë</label>
-          <input id="f_company" placeholder="p.sh. Test sh.p.k.">
-        </div>
-        <div>
-          <label>Person kontakti</label>
-          <input id="f_contact" placeholder="Emër Mbiemër">
-        </div>
-        <div>
-          <label>Telefon</label>
-          <input id="f_phone" placeholder="+355 ...">
-        </div>
-        <div>
-          <label>Email</label>
-          <input id="f_email" type="email" placeholder="kontakt@kompania.al">
-        </div>
+        <div><label>Emri i kompanisë</label><input id="f_company" placeholder="p.sh. Test sh.p.k."></div>
+        <div><label>Person kontakti</label><input id="f_contact" placeholder="Emër Mbiemër"></div>
+        <div><label>Telefon</label><input id="f_phone" placeholder="+355 ..."></div>
+        <div><label>Email</label><input id="f_email" type="email" placeholder="kontakt@kompania.al"></div>
       </div>
 
       <div class="row">
-        <div>
-          <label>NIPT (ops.)</label>
-          <input id="f_nipt" placeholder="p.sh. K12345678M">
-        </div>
-        <div>
-          <label>Industry (ops.)</label>
-          <input id="f_industry" placeholder="p.sh. Energjia / Prodhim / Shërbime">
-        </div>
-        <div>
-          <label>Activity (ops.)</label>
-          <input id="f_activity" placeholder="p.sh. Furnizim me energji">
-        </div>
+        <div><label>NIPT (ops.)</label><input id="f_nipt" placeholder="p.sh. K12345678M"></div>
+        <div><label>Industry (ops.)</label><input id="f_industry" placeholder="p.sh. Energjia / Prodhim / Shërbime"></div>
+        <div><label>Activity (ops.)</label><input id="f_activity" placeholder="p.sh. Furnizim me energji"></div>
         <div>
           <label>Burimi</label>
           <select id="f_source">
-            <option>QKB</option>
-            <option>Google Maps</option>
-            <option>LinkedIn</option>
-            <option>Tjetër</option>
+            <option>QKB</option><option>Google Maps</option><option>LinkedIn</option><option>Tjetër</option>
           </select>
         </div>
       </div>
@@ -166,72 +121,41 @@
         <div>
           <label>Status Telefonate</label>
           <select id="f_call_status">
-            <option>Not answered</option>
-            <option>Answered</option>
-            <option>Invalid number</option>
+            <option>Not answered</option><option>Answered</option><option>Invalid number</option>
           </select>
         </div>
         <div>
           <label>Rezultati (nëse u përgjigj)</label>
           <select id="f_answer_outcome">
-            <option value="">—</option>
-            <option>I interesuar</option>
-            <option>I pa interesuar</option>
-            <option>Do ta eskaloj</option>
-            <option>Do të mendohet</option>
+            <option value="">—</option><option>I interesuar</option><option>I pa interesuar</option><option>Do ta eskaloj</option><option>Do të mendohet</option>
           </select>
         </div>
-        <div>
-          <label>Agjent terreni (nëse caktohet takim)</label>
-          <input id="f_field_agent" placeholder="p.sh. Arben H.">
-        </div>
-        <div>
-          <label>Data takimit (ops.)</label>
-          <input id="f_meeting_date" type="date">
-        </div>
+        <div><label>Agjent terreni</label><input id="f_field_agent" placeholder="p.sh. Arben H."></div>
+        <div><label>Data takimit (ops.)</label><input id="f_meeting_date" type="date"></div>
       </div>
 
-      <div>
-        <label>Shënime</label>
-        <textarea id="f_notes" placeholder="Shënim fillestar"></textarea>
-      </div>
-      <div class="right">
-        <button class="btn primary" onclick="addLead()"><i class="fa-solid fa-plus"></i> Shto lead</button>
-      </div>
+      <div><label>Shënime</label><textarea id="f_notes" placeholder="Shënim fillestar (ruhet si koment ‘create’)"></textarea></div>
+      <div class="right"><button class="btn primary" onclick="addLead()"><i class="fa-solid fa-plus"></i> Shto lead</button></div>
     </div>
   </section>
 
-  <!-- LISTA & FILTRA (POSHTË) -->
+  <!-- LISTA -->
   <section class="card">
     <div class="flex" style="justify-content:space-between">
       <h2 style="margin:0;font-size:16px">Leads</h2>
       <div class="flex">
         <input id="q" placeholder="Kërko (kompania, kontakt, tel, email)" oninput="render()">
         <select id="flt_source" onchange="render()">
-          <option value="">Burimi (gjithë)</option>
-          <option>QKB</option>
-          <option>Google Maps</option>
-          <option>LinkedIn</option>
-          <option>Tjetër</option>
+          <option value="">Burimi (gjithë)</option><option>QKB</option><option>Google Maps</option><option>LinkedIn</option><option>Tjetër</option>
         </select>
         <select id="flt_call" onchange="render()">
-          <option value="">Tel status (gjithë)</option>
-          <option>Answered</option>
-          <option>Not answered</option>
-          <option>Invalid number</option>
+          <option value="">Tel status (gjithë)</option><option>Answered</option><option>Not answered</option><option>Invalid number</option>
         </select>
         <select id="flt_result" onchange="render()">
-          <option value="">Rezultat (gjithë)</option>
-          <option>I interesuar</option>
-          <option>I pa interesuar</option>
-          <option>Do ta eskaloj</option>
-          <option>Do të mendohet</option>
+          <option value="">Rezultat (gjithë)</option><option>I interesuar</option><option>I pa interesuar</option><option>Do ta eskaloj</option><option>Do të mendohet</option>
         </select>
         <select id="flt_meeting" onchange="render()">
-          <option value="">Takim (gjithë)</option>
-          <option>Pending</option>
-          <option>Accepted</option>
-          <option>Refused - Closed</option>
+          <option value="">Takim (gjithë)</option><option>Pending</option><option>Accepted</option><option>Refused - Closed</option>
         </select>
         <label class="btn"><i class="fa-solid fa-sort"></i>
           <select id="sortBy" onchange="render()" style="border:0;background:transparent">
@@ -251,16 +175,8 @@
       <table id="tbl">
         <thead>
           <tr>
-            <th>Kompania</th>
-            <th>Kontakt</th>
-            <th>Burimi</th>
-            <th>Tel status</th>
-            <th>Rezultat</th>
-            <th>Follow-up</th>
-            <th>Takimi</th>
-            <th>Agjenti</th>
-            <th>Komente</th>
-            <th class="nowrap">Veprime</th>
+            <th>Kompania</th><th>Kontakt</th><th>Burimi</th><th>Tel status</th><th>Rezultat</th>
+            <th>Follow-up</th><th>Takimi</th><th>Agjenti</th><th>Komente</th><th class="nowrap">Veprime</th>
           </tr>
         </thead>
         <tbody id="rows"></tbody>
@@ -269,88 +185,49 @@
   </section>
 </main>
 
-<!-- MODAL: Faqja e biznesit / komente & aktivitet -->
+<!-- MODAL -->
 <div class="modal" id="modal">
   <div class="panel">
     <div class="head">
-      <div>
-        <h3 id="m_title" style="margin:0"></h3>
-        <div class="muted" id="m_meta"></div>
-      </div>
-      <div class="flex">
-        <button class="btn" onclick="closeModal()">Mbyll</button>
-      </div>
+      <div><h3 id="m_title" style="margin:0"></h3><div class="muted" id="m_meta"></div></div>
+      <div class="flex"><button class="btn" onclick="closeModal()">Mbyll</button></div>
     </div>
 
     <div class="body">
       <div class="grid" style="margin-top:8px">
         <div class="row-3">
-          <div>
-            <label>NIPT</label>
-            <input id="m_nipt">
-          </div>
-          <div>
-            <label>Industry</label>
-            <input id="m_industry">
-          </div>
-          <div>
-            <label>Activity</label>
-            <input id="m_activity">
-          </div>
+          <div><label>NIPT</label><input id="m_nipt"></div>
+          <div><label>Industry</label><input id="m_industry"></div>
+          <div><label>Activity</label><input id="m_activity"></div>
         </div>
 
         <div class="row-2" style="margin-top:8px">
           <div>
             <label>Përditëso rezultat</label>
             <select id="m_result">
-              <option value="">—</option>
-              <option>I interesuar</option>
-              <option>I pa interesuar</option>
-              <option>Do ta eskaloj</option>
-              <option>Do të mendohet</option>
+              <option value="">—</option><option>I interesuar</option><option>I pa interesuar</option><option>Do ta eskaloj</option><option>Do të mendohet</option>
             </select>
           </div>
-          <div>
-            <label>Follow-up (auto +3 ditë në eskalim/mendim)</label>
-            <input id="m_next" type="date">
-          </div>
+          <div><label>Follow-up (auto +3 ditë në eskalim/mendim)</label><input id="m_next" type="date"></div>
         </div>
 
         <div class="row-3">
           <div>
             <label>Status takimi</label>
             <select id="m_meeting_status">
-              <option value="">—</option>
-              <option>Pending</option>
-              <option>Accepted</option>
-              <option>Refused - Closed</option>
+              <option value="">—</option><option>Pending</option><option>Accepted</option><option>Refused - Closed</option>
             </select>
           </div>
-          <div>
-            <label>Data takimit</label>
-            <input id="m_meeting_date" type="date">
-          </div>
-          <div>
-            <label>Agjent terreni</label>
-            <input id="m_agent" placeholder="p.sh. Arben H.">
-          </div>
+          <div><label>Data takimit</label><input id="m_meeting_date" type="date"></div>
+          <div><label>Agjent terreni</label><input id="m_agent" placeholder="p.sh. Arben H."></div>
         </div>
 
         <div class="row-2">
-          <div>
-            <label>Email i klientit</label>
-            <input id="m_email">
-          </div>
-          <div>
-            <label>Telefon</label>
-            <input id="m_phone">
-          </div>
+          <div><label>Email i klientit</label><input id="m_email"></div>
+          <div><label>Telefon</label><input id="m_phone"></div>
         </div>
 
-        <div>
-          <label>Koment i ri</label>
-          <textarea id="m_comment" placeholder="Përshkrim i telefonatës / takimit / follow-up"></textarea>
-        </div>
+        <div><label>Koment i ri</label><textarea id="m_comment" placeholder="Përshkrim i telefonatës / takimit / follow-up"></textarea></div>
 
         <div class="flex right">
           <button class="btn" onclick="sendEmailTemplate()"><i class="fa-solid fa-envelope"></i> Dërgo email</button>
@@ -368,7 +245,7 @@
   </div>
 </div>
 
-<!-- ===== Overlay: Supabase Auth ===== -->
+<!-- AUTH OVERLAY -->
 <div id="auth">
   <div class="panel">
     <h3 style="margin:0 0 8px 0;font-size:18px;font-weight:800">Hyrje në Mini-CRM</h3>
@@ -385,188 +262,135 @@
 
 <!-- Supabase SDK -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <script>
-/* ====== KONFIGURIM SUPABASE ====== */
+/* ===== SUPABASE ===== */
 const SUPABASE_URL = 'https://cpkyagcuowjvofgcgdwx.supabase.co';
-const SUPABASE_ANON_KEY =
-  'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwa3lhZ2N1b3dqdm9mZ2NnZHd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4MjI3OTksImV4cCI6MjA3MjM5ODc5OX0.NqgKif1QO3vtigZ9eWRc8JuJLCw6JoeRIcqWwzXCIQs';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwa3lhZ2N1b3dqdm9mZ2NnZHd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4MjI3OTksImV4cCI6MjA3MjM5ODc5OX0.NqgKif1QO3vtigZ9eWRc8JuJLCw6JoeRIcqWwzXCIQs';
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: false,  // SPA në GitHub Pages
-    flowType: 'pkce'
-  }
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
 });
 
-/* ====== STATE & HELPERS ====== */
-let LEADS = [];              // lista e lead-eve nga DB
-let COMMENTS = {};           // cache: lead_id -> array updates
-let COUNTS = new Map();      // lead_id -> comments count
-let CURRENT_ID = null;       // lead i hapur në modal
+/* ===== STATE/UTIL ===== */
+let LEADS = [];
+let COMMENTS = {};
+let COUNTS = new Map();
+let CURRENT_ID = null;
 const EL = sel => document.querySelector(sel);
 const ESC = s => (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;', "'":'&#39;' }[m]));
 function todayStr(d=new Date()){ const z=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate()); }
 function addDays(date,days){ const d=new Date(date); d.setDate(d.getDate()+days); return d; }
-function setLoading(on){ EL('#loading')?.style && (EL('#loading').style.display = on ? 'inline-flex' : 'none'); }
-function showAuth(on){ EL('#auth')?.style && (EL('#auth').style.display = on ? 'flex' : 'none'); }
-function setUserEmail(email){ const slot = EL('#user_slot'); if(slot) slot.textContent = email ? ('• ' + email) : ''; }
 
-/* ====== AUTH ====== */
-async function ensureAuth(){
-  const { data:{ session }, error } = await sb.auth.getSession();
-  if(error){ console.warn('[getSession]', error); }
-  const authed = !!session?.user;
-  showAuth(!authed);
-  setUserEmail(authed ? (session.user.email||'') : '');
-  return authed;
+/* ===== AUTH ===== */
+async function requireSession(){
+  const { data: { session } } = await sb.auth.getSession();
+  if(session){
+    EL('#auth').style.display='none';
+    const u = session.user?.email || '';
+    const slot = EL('#user_slot'); if(slot) slot.textContent = u ? ('• '+u) : '';
+    return true;
+  }else{
+    EL('#auth').style.display='flex'; return false;
+  }
 }
 async function signIn(){
   const email = EL('#auth_email').value.trim();
   const password = EL('#auth_pwd').value;
-  EL('#auth_msg').textContent = '';
-  setLoading(true);
-  try{
-    const { error } = await sb.auth.signInWithPassword({ email, password });
-    if(error){ EL('#auth_msg').textContent = error.message || 'Login dështoi'; return; }
-    await afterAuthReady();
-  }catch(e){
-    EL('#auth_msg').textContent = 'Gabim i papritur gjatë login.';
-    console.error('[signIn exception]', e);
-  }finally{ setLoading(false); }
+  const { error } = await sb.auth.signInWithPassword({ email, password });
+  EL('#auth_msg').textContent = error ? (error.message || 'Login dështoi') : '';
+  if(!error){ EL('#auth').style.display='none'; await refreshLeads(); }
 }
 async function signUp(){
   const email = EL('#auth_email').value.trim();
   const password = EL('#auth_pwd').value;
-  EL('#auth_msg').textContent = '';
-  setLoading(true);
-  try{
-    const { error } = await sb.auth.signUp({ email, password });
-    if(error){ EL('#auth_msg').textContent = error.message || 'Sign up dështoi'; return; }
-    EL('#auth_msg').style.color = '#166534';
-    EL('#auth_msg').textContent = 'U krijua. Nëse kërkohet verifikim email, hap linkun dhe hyr sërish.';
-  }catch(e){
-    EL('#auth_msg').textContent = 'Gabim i papritur gjatë sign up.';
-    console.error('[signUp exception]', e);
-  }finally{ setLoading(false); }
+  const { error } = await sb.auth.signUp({ email, password });
+  EL('#auth_msg').textContent = error ? (error.message || 'Sign up dështoi') : 'U krijua. Kontrollo email-in (nëse kërkohet verifikim).';
 }
 async function signOut(){
-  setLoading(true);
-  try{
-    await sb.auth.signOut();
-    setUserEmail('');
-    showAuth(true);
-    LEADS = []; COMMENTS = {}; COUNTS = new Map(); render();
-  }catch(e){
-    console.error('[signOut]', e);
-  }finally{ setLoading(false); }
+  await sb.auth.signOut();
+  LEADS = []; COMMENTS = {}; COUNTS = new Map(); render();
+  EL('#user_slot').textContent = '';
+  EL('#auth').style.display='flex';
 }
-async function resetSession(){
-  try{
-    localStorage.removeItem('sb-' + btoa(SUPABASE_URL) + '-auth-token');
-    sessionStorage.clear();
-    await sb.auth.signOut();
-  }catch(e){ console.warn('[resetSession]', e); }
-  showAuth(true); setUserEmail('');
-}
-
-/* ====== AFTER AUTH ====== */
-async function smokeTest(){
-  const { error } = await sb.from('leads').select('id').limit(1);
-  if(error){
-    console.error('[smokeTest]', error);
-    alert('TEST: SELECT te leads dështoi.\n' + (error.message || 'Kontrollo RLS (SELECT)/GRANT & CORS URL.'));
-    return false;
-  }
-  return true;
-}
-async function afterAuthReady(){
-  showAuth(false);
-  const ok = await smokeTest();
-  if(ok && typeof refreshLeads === 'function'){ await refreshLeads(); }
-}
-
-/* ====== LISTENER I GJENDJES ====== */
-sb.auth.onAuthStateChange(async (evt, session) => {
-  if(session?.user){
-    setUserEmail(session.user.email||''); showAuth(false);
-    if (typeof refreshLeads === 'function') { await refreshLeads(); }
-  }else{
-    setUserEmail(''); showAuth(true);
-  }
+sb.auth.onAuthStateChange(async (_evt, session) => {
+  if(session){ EL('#auth').style.display='none'; await refreshLeads(); }
+  else{ EL('#auth').style.display='flex'; }
 });
 
-/* ====== DB: COUNTS ====== */
+/* ===== DB: COUNTS (view lead_comment_counts) ===== */
 async function fetchCounts(){
   try{
     const { data, error } = await sb.from('lead_comment_counts').select('*');
     if(error){ console.warn('[counts]', error); return new Map(); }
-    const map = new Map(); (data||[]).forEach(r => map.set(r.lead_id, r.comments||0));
+    const map = new Map();
+    (data||[]).forEach(r => map.set(r.lead_id, r.comments||0));
     return map;
-  }catch(err){ console.warn('[counts: exception]', err); return new Map(); }
+  }catch(err){
+    console.warn('[counts: exception]', err);
+    return new Map();
+  }
 }
 
-/* ====== DB: LEADS (fallback i sigurt) ====== */
+/* ===== DB: LEADS ===== */
 async function fetchLeads(){
   try{
     let { data, error } = await sb
       .from('leads')
       .select('id, created_at, created_at_ts, company, contact, phone, email, source, call_status, answer_outcome, next_follow_up, meeting_status, meeting_date, field_agent, nipt, industry, activity')
       .order('created_at', { ascending:false });
-    if(!error && Array.isArray(data)) return data;
-
-    ({ data, error } = await sb
-      .from('leads')
-      .select('id, created_at, created_at_ts, company, contact, phone, email, source, call_status, answer_outcome, next_follow_up, meeting_status, meeting_date, field_agent, nipt, industry, activity')
-      .order('created_at_ts', { ascending:false }));
-    if(!error && Array.isArray(data)) return data;
-
-    ({ data, error } = await sb
-      .from('leads')
-      .select('id, created_at, created_at_ts, company, contact, phone, email, source, call_status, answer_outcome, next_follow_up, meeting_status, meeting_date, field_agent, nipt, industry, activity'));
-    if(error){
-      console.error('[fetchLeads C failed]', error);
-      alert('Nuk u lexuan lead-et nga DB.\n'+(error.message || 'Kontrollo RLS (SELECT) dhe GRANT.'));
-      return [];
-    }
-    return data || [];
+    if(error) throw error;
+    return data||[];
   }catch(err){
-    console.error('[fetchLeads exception]', err);
-    alert('Gabim gjatë leximit të lead-eve (shiko Console).');
+    console.error('[fetchLeads]', err);
+    alert('Nuk u lexuan lead-et nga DB.\n' + (err.message || 'Kontrollo RLS/kolonat.'));
     return [];
   }
 }
+
+/* ===== INSERT lead – payload strikt (pa _prime_note te leads) ===== */
 async function insertLead(obj){
-  try{
-    const { error } = await sb.from('leads').insert([obj]);
-    if(error) throw error;
-    try{
-      await sb.from('lead_updates').insert([{ lead_id: obj.id, kind:'create', comment:(obj._prime_note||null) }]);
-    }catch(e){ console.warn('[lead_updates create] skipped:', e?.message || e); }
-  }catch(err){
-    console.error('[insertLead]', err);
-    alert('Shtimi në DB dështoi. Kontrollo RLS (INSERT) dhe kolonat.');
+  const payload = {
+    id: obj.id,
+    created_at: obj.created_at,           // DATE (YYYY-MM-DD)
+    company: obj.company,
+    phone: obj.phone,
+    contact: obj.contact || null,
+    email: obj.email || null,
+    source: obj.source || null,
+    call_status: obj.call_status || null,
+    answer_outcome: obj.answer_outcome || null,
+    next_follow_up: obj.next_follow_up || null,
+    meeting_status: obj.meeting_status || null,
+    meeting_date: obj.meeting_date || null,
+    field_agent: obj.field_agent || null,
+    nipt: obj.nipt || null,
+    industry: obj.industry || null,
+    activity: obj.activity || null
+  };
+
+  const { data, error } = await sb.from('leads').insert([payload]).select('id');
+  if(error){
+    console.error('[INSERT ERROR]', error);
+    alert('Shtimi në DB dështoi.\n' + (error.message || JSON.stringify(error)));
+    throw error;
   }
+  return data;
 }
 async function updateLeadFields(id, fields){
-  try{
-    const { error } = await sb.from('leads').update(fields).eq('id', id);
-    if(error) throw error;
-  }catch(err){
-    console.warn('[updateLeadFields]', err);
-    alert('UPDATE dështoi. Vendos RLS për UPDATE te leads.');
-  }
+  const { error } = await sb.from('leads').update(fields).eq('id', id);
+  if(error){ console.warn('[updateLeadFields]', error); alert('UPDATE dështoi (RLS/kolonat).'); }
 }
 
-/* ====== DB: UPDATES/COMMENTS ====== */
+/* ===== DB: UPDATES/COMMENTS ===== */
 async function fetchComments(lead_id){
   try{
     const { data, error } = await sb.from('lead_updates').select('*').eq('lead_id', lead_id).order('ts',{ascending:false});
     if(error){ console.warn('[fetchComments]', error); return []; }
     return data||[];
-  }catch(err){ console.warn('[fetchComments exception]', err); return []; }
+  }catch(err){
+    console.warn('[fetchComments exception]', err);
+    return [];
+  }
 }
 async function insertUpdate(lead_id, payload){
   try{
@@ -588,7 +412,7 @@ async function insertComment(lead_id, text){
   }
 }
 
-/* ====== BADGES ====== */
+/* ===== BADGES ===== */
 function badgeCall(s){
   if(s==='Answered') return `<span class="pill ok"><i class="fa-solid fa-phone"></i> ${s}</span>`;
   if(s==='Not answered') return `<span class="pill warn"><i class="fa-solid fa-phone-slash"></i> ${s}</span>`;
@@ -609,7 +433,7 @@ function badgeMeeting(s){
   return `<span class="pill">${ESC(s||'—')}</span>`;
 }
 
-/* ====== RENDER LIST ====== */
+/* ===== RENDER LIST ===== */
 function render(){
   const q = EL('#q').value.toLowerCase().trim();
   const fs = EL('#flt_source').value;
@@ -660,13 +484,7 @@ function render(){
   }).join('') || `<tr><td colspan="10" class="muted">S'ka të dhëna.</td></tr>`;
 }
 
-/* ====== UI: ADD LEAD ====== */
-function clearForm(){
-  ['f_company','f_contact','f_phone','f_email','f_nipt','f_industry','f_activity','f_field_agent','f_meeting_date','f_notes'].forEach(id=> EL('#'+id).value='');
-  EL('#f_source').value='QKB';
-  EL('#f_call_status').value='Not answered';
-  EL('#f_answer_outcome').value='';
-}
+/* ===== ADD LEAD ===== */
 async function addLead(){
   const obj = {
     id: 'L'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4),
@@ -685,25 +503,48 @@ async function addLead(){
     meeting_status: null,
     meeting_date: EL('#f_meeting_date').value || null,
     field_agent: EL('#f_field_agent').value.trim() || null,
-    _prime_note: EL('#f_notes').value.trim() || null
+    _prime_note: EL('#f_notes').value.trim() || null  // RUHET TE lead_updates, jo te leads
   };
-  if(!obj.company || !obj.phone){ alert('Kompania dhe telefoni janë të detyrueshëm.'); return; }
+  if(!obj.company || !obj.phone){
+    alert('Kompania dhe telefoni janë të detyrueshëm.');
+    return;
+  }
   if(obj.answer_outcome==='Do ta eskaloj' || obj.answer_outcome==='Do të mendohet'){
     obj.next_follow_up = todayStr(addDays(new Date(),3));
   }
   if(obj.meeting_date) obj.meeting_status = 'Pending';
 
-  setLoading(true);
+  EL('#loading').style.display='inline-flex';
   try{
     await insertLead(obj);
+
+    // log "create" me shënimin fillestar (nëse kalon RLS në lead_updates)
+    if(obj._prime_note){
+      try{
+        await sb.from('lead_updates').insert([{ lead_id: obj.id, kind:'create', comment: obj._prime_note }]);
+      }catch(e){ console.warn('[lead_updates create] skipped:', e?.message || e); }
+    }else{
+      try{
+        await sb.from('lead_updates').insert([{ lead_id: obj.id, kind:'create' }]);
+      }catch(e){ console.warn('[lead_updates create] skipped:', e?.message || e); }
+    }
+
     await refreshLeads();
-    clearForm();
+
+    // pastro formularin
+    ['f_company','f_contact','f_phone','f_email','f_nipt','f_industry','f_activity','f_field_agent','f_meeting_date','f_notes']
+      .forEach(id=> EL('#'+id).value='');
+    EL('#f_source').value='QKB';
+    EL('#f_call_status').value='Not answered';
+    EL('#f_answer_outcome').value='';
   }catch(err){
-    console.error('[addLead outer]', err); alert('Shtimi dështoi.');
-  }finally{ setLoading(false); }
+    console.error('[addLead]', err);
+  }finally{
+    EL('#loading').style.display='none';
+  }
 }
 
-/* ====== MODAL ====== */
+/* ===== MODAL ===== */
 async function openModal(id){
   CURRENT_ID = id;
   const x = LEADS.find(i=>i.id===id); if(!x) return;
@@ -723,6 +564,7 @@ async function openModal(id){
 
   COMMENTS[id] = await fetchComments(id);
   renderTimeline(id);
+
   EL('#modal').style.display='flex';
 }
 function renderTimeline(id){
@@ -747,7 +589,7 @@ function renderTimeline(id){
 }
 function closeModal(){ EL('#modal').style.display='none'; CURRENT_ID=null; }
 
-/* ====== SAVE & QUICK FOLLOW ====== */
+/* ===== SAVE & QUICK FOLLOW ===== */
 async function saveModal(){
   const x = LEADS.find(i=>i.id===CURRENT_ID); if(!x) return;
 
@@ -765,7 +607,7 @@ async function saveModal(){
 
   const autoFU = (!nextFU && (newResult==='Do ta eskaloj' || newResult==='Do të mendohet')) ? todayStr(addDays(new Date(),3)) : null;
 
-  setLoading(true);
+  EL('#loading').style.display='inline-flex';
   try{
     await insertUpdate(x.id, {
       new_result: newResult,
@@ -795,23 +637,29 @@ async function saveModal(){
     COMMENTS[x.id] = await fetchComments(x.id);
     renderTimeline(x.id);
   }catch(err){
-    console.error('[saveModal]', err); alert('Ruajtja dështoi.');
-  }finally{ setLoading(false); }
+    console.error('[saveModal]', err);
+    alert('Ruajtja dështoi.');
+  }finally{
+    EL('#loading').style.display='none';
+  }
 }
 async function quickFollow(id){
   const x = LEADS.find(i=>i.id===id); if(!x) return;
   const next = todayStr(addDays(new Date(),3));
-  setLoading(true);
+  EL('#loading').style.display='inline-flex';
   try{
     await insertUpdate(id, { new_result: x.answer_outcome || null, next_follow_up: next });
     await updateLeadFields(id, { next_follow_up: next });
     await refreshLeads();
   }catch(err){
-    console.error('[quickFollow]', err); alert('S’përditësua follow-up.');
-  }finally{ setLoading(false); }
+    console.error('[quickFollow]', err);
+    alert('S’përditësua follow-up.');
+  }finally{
+    EL('#loading').style.display='none';
+  }
 }
 
-/* ====== EMAIL & ICS ====== */
+/* ===== EMAIL & ICS ===== */
 function sendEmailTemplate(){
   const x = LEADS.find(i=>i.id===CURRENT_ID); if(!x) return;
   const to = x.email || '';
@@ -828,8 +676,7 @@ Do të rikthehemi me një telefonatë follow-up brenda 3 ditësh (ose sipas mund
 • Tel: ${x.phone||''}
 
 Faleminderit,
-ADC`
-  );
+ADC`);
   window.location.href = `mailto:${to}?subject=${subj}&body=${body}`;
 }
 function makeICS({title, description, date, durationMinutes=30}){
@@ -863,7 +710,7 @@ function downloadICSMeeting(){
   makeICS({ title:`Takim · ${x.company}`, description:`Takim me ${x.company}\nKontakt: ${x.contact||''}\nTel: ${x.phone||''}\nAgjent: ${x.field_agent||''}`, date:x.meeting_date });
 }
 
-/* ====== CSV ====== */
+/* ===== CSV ===== */
 function downloadCSV(){
   const cols = ["id","created_at","company","nipt","industry","activity","contact","phone","email","source","call_status","answer_outcome","next_follow_up","meeting_status","meeting_date","field_agent"];
   const lines = [cols.join(',')];
@@ -876,43 +723,26 @@ function downloadCSV(){
   const a = document.createElement('a'); a.href=URL.createObjectURL(blob); a.download='adc_leads.csv'; a.click();
 }
 
-/* ====== DATA FLOW ====== */
+/* ===== DATA FLOW ===== */
 async function refreshLeads(){
-  setLoading(true);
+  EL('#loading').style.display='inline-flex';
   try{
     const [leads, counts] = await Promise.all([ fetchLeads(), fetchCounts() ]);
     LEADS = Array.isArray(leads) ? leads : [];
     COUNTS = counts instanceof Map ? counts : new Map();
     render();
   }catch(err){
-    console.error('[refreshLeads]', err); alert('Gabim gjatë rifreskimit të të dhënave.');
-  }finally{ setLoading(false); }
+    console.error('[refreshLeads]', err);
+    alert('Gabim gjatë rifreskimit të të dhënave.');
+  }finally{
+    EL('#loading').style.display='none';
+  }
 }
 
-/* ====== INIT ====== */
+/* ===== INIT ===== */
 document.addEventListener('DOMContentLoaded', async ()=>{
-  setLoading(true);
-  try{
-    const authed = await ensureAuth();
-    if(authed){
-      if(await smokeTest()){ await refreshLeads(); }
-    }
-  }finally{
-    setLoading(false);
-  }
-
-  // Shto butonin “Reset session” (opsional, por ndihmon kur ngec)
-  const authPanel = document.querySelector('#auth .panel');
-  if(authPanel && !document.getElementById('resetSess')){
-    const wrap = document.createElement('div');
-    wrap.style = 'display:flex;gap:8px;justify-content:space-between;margin-top:8px';
-    wrap.innerHTML = `
-      <button id="resetSess" class="btn" type="button">Reset session</button>
-      <a class="muted" href="https://app.supabase.com/project/cpkyagcuowjvofgcgdwx/auth/users" target="_blank" style="font-size:12px;text-decoration:none">Menaxho user-at</a>
-    `;
-    authPanel.appendChild(wrap);
-    document.getElementById('resetSess').onclick = resetSession;
-  }
+  const ok = await requireSession();
+  if(ok){ await refreshLeads(); }
 });
 </script>
 </body>
