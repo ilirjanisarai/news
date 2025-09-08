@@ -43,10 +43,10 @@
   .btn.ok{background:linear-gradient(180deg,var(--ok),#15803d); color:#fff; border-color:transparent}
   .btn.warn{background:linear-gradient(180deg,var(--warn),#b45309); color:#fff; border-color:transparent}
   .btn.bad{background:linear-gradient(180deg,var(--bad),#7f1d1d); color:#fff; border-color:transparent}
-  .toolbar{display:flex; gap:10px; flex-wrap:wrap}
+  .toolbar{display:flex; gap:10px; flex-wrap:wrap; align-items:center}
   table{width:100%; border-collapse:separate; border-spacing:0}
   th,td{padding:10px 12px; border-bottom:1px solid var(--line); text-align:left; vertical-align:top; font-size:14px}
-  th{font-size:12px; color:var(--muted)}
+  th{font-size:12px; color:var(--muted')}
   tr:hover td{background:rgba(37,99,235,.05)}
   .pill{display:inline-flex; align-items:center; gap:6px; padding:3px 8px; border-radius:999px; font-size:12px; border:1px solid var(--line); background:#eef2ff; color:#1d4ed8}
   .pill.ok{background:#dcfce7; color:#166534}
@@ -59,11 +59,11 @@
   .hide{display:none}
   #loading{display:none; align-items:center; gap:8px; font-weight:800}
 
-  /* ===== Overlay Auth ===== */
+  /* Overlay Auth */
   #auth{position:fixed;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(0,0,0,.06);backdrop-filter:blur(4px);z-index:9999}
   #auth .panel{width:360px;max-width:94%;background:var(--surface);border:1px solid var(--line);border-radius:14px;box-shadow:var(--shadow);padding:16px}
 
-  /* ===== Modal (Faqja e Biznesit) ===== */
+  /* Modal */
   .modal{position:fixed; inset:0; background:rgba(0,0,0,.55); display:none; align-items:center; justify-content:center; padding:18px; z-index:1000}
   .panel{max-width:900px; width:100%; background:var(--surface); border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow); display:flex; flex-direction:column; max-height:90vh}
   .panel .head{position:sticky; top:0; background:var(--surface); border-bottom:1px solid var(--line); padding:14px; display:flex; align-items:center; justify-content:space-between; gap:8px; z-index:1}
@@ -286,8 +286,8 @@ async function requireSession(){
   const { data: { session } } = await sb.auth.getSession();
   if(session){
     EL('#auth').style.display='none';
-    const u = session.user?.email || '';
-    const slot = EL('#user_slot'); if(slot) slot.textContent = u ? ('• '+u) : '';
+    const slot = EL('#user_slot');
+    if(slot) slot.textContent = session.user?.email ? ('• '+session.user.email) : '';
     return true;
   }else{
     EL('#auth').style.display='flex'; return false;
@@ -317,7 +317,7 @@ sb.auth.onAuthStateChange(async (_evt, session) => {
   else{ EL('#auth').style.display='flex'; }
 });
 
-/* ===== DB: COUNTS (view lead_comment_counts) ===== */
+/* ===== DB: COUNTS ===== */
 async function fetchCounts(){
   try{
     const { data, error } = await sb.from('lead_comment_counts').select('*');
@@ -347,7 +347,7 @@ async function fetchLeads(){
   }
 }
 
-/* ===== INSERT lead – payload strikt (pa _prime_note te leads) ===== */
+/* ===== INSERT lead – payload strikt (vetëm kolonat e tabelës) ===== */
 async function insertLead(obj){
   const payload = {
     id: obj.id,
@@ -372,10 +372,11 @@ async function insertLead(obj){
   if(error){
     console.error('[INSERT ERROR]', error);
     alert('Shtimi në DB dështoi.\n' + (error.message || JSON.stringify(error)));
-    throw error;
+    throw error; // le të fiket spinner-i te finally
   }
   return data;
 }
+
 async function updateLeadFields(id, fields){
   const { error } = await sb.from('leads').update(fields).eq('id', id);
   if(error){ console.warn('[updateLeadFields]', error); alert('UPDATE dështoi (RLS/kolonat).'); }
@@ -484,7 +485,7 @@ function render(){
   }).join('') || `<tr><td colspan="10" class="muted">S'ka të dhëna.</td></tr>`;
 }
 
-/* ===== ADD LEAD ===== */
+/* ===== ADD LEAD (me spinner off në finally) ===== */
 async function addLead(){
   const obj = {
     id: 'L'+Math.random().toString(36).slice(2,9)+Date.now().toString(36).slice(-4),
@@ -503,7 +504,7 @@ async function addLead(){
     meeting_status: null,
     meeting_date: EL('#f_meeting_date').value || null,
     field_agent: EL('#f_field_agent').value.trim() || null,
-    _prime_note: EL('#f_notes').value.trim() || null  // RUHET TE lead_updates, jo te leads
+    _prime_note: EL('#f_notes').value.trim() || null
   };
   if(!obj.company || !obj.phone){
     alert('Kompania dhe telefoni janë të detyrueshëm.');
@@ -518,20 +519,18 @@ async function addLead(){
   try{
     await insertLead(obj);
 
-    // log "create" me shënimin fillestar (nëse kalon RLS në lead_updates)
-    if(obj._prime_note){
-      try{
-        await sb.from('lead_updates').insert([{ lead_id: obj.id, kind:'create', comment: obj._prime_note }]);
-      }catch(e){ console.warn('[lead_updates create] skipped:', e?.message || e); }
-    }else{
-      try{
-        await sb.from('lead_updates').insert([{ lead_id: obj.id, kind:'create' }]);
-      }catch(e){ console.warn('[lead_updates create] skipped:', e?.message || e); }
-    }
+    // log “create” (nëse kalon RLS)
+    try{
+      await sb.from('lead_updates').insert([{
+        lead_id: obj.id,
+        kind: 'create',
+        comment: obj._prime_note || null
+      }]);
+    }catch(e){ console.warn('[lead_updates create] skipped:', e?.message || e); }
 
     await refreshLeads();
 
-    // pastro formularin
+    // pastro formën
     ['f_company','f_contact','f_phone','f_email','f_nipt','f_industry','f_activity','f_field_agent','f_meeting_date','f_notes']
       .forEach(id=> EL('#'+id).value='');
     EL('#f_source').value='QKB';
