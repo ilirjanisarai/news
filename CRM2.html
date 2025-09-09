@@ -268,11 +268,7 @@ const SUPABASE_URL = 'https://cpkyagcuowjvofgcgdwx.supabase.co';
 const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNwa3lhZ2N1b3dqdm9mZ2NnZHd4Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTY4MjI3OTksImV4cCI6MjA3MjM5ODc5OX0.NqgKif1QO3vtigZ9eWRc8JuJLCw6JoeRIcqWwzXCIQs';
 
 const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-  auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true
-  }
+  auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: true }
 });
 
 /* ===== STATE/UTIL ===== */
@@ -284,6 +280,27 @@ const EL = sel => document.querySelector(sel);
 const ESC = s => (s||'').replace(/[&<>"']/g, m=>({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;', "'":'&#39;' }[m]));
 function todayStr(d=new Date()){ const z=n=>String(n).padStart(2,'0'); return d.getFullYear()+'-'+z(d.getMonth()+1)+'-'+z(d.getDate()); }
 function addDays(date,days){ const d=new Date(date); d.setDate(d.getDate()+days); return d; }
+
+/* ===== LOADING GUARD (anti-ngecje) ===== */
+let IN_FLIGHT = 0;
+let WATCHDOG = null;
+function showLoad(){
+  IN_FLIGHT++;
+  EL('#loading').style.display='inline-flex';
+  clearTimeout(WATCHDOG);
+  WATCHDOG = setTimeout(()=>{
+    console.warn('[watchdog] long pending request, hiding spinner');
+    IN_FLIGHT = 0;
+    EL('#loading').style.display='none';
+  }, 12000);
+}
+function hideLoad(){
+  if(IN_FLIGHT>0) IN_FLIGHT--;
+  if(IN_FLIGHT===0){
+    clearTimeout(WATCHDOG);
+    EL('#loading').style.display='none';
+  }
+}
 
 /* ===== AUTH ===== */
 async function updateHeaderUser(session){
@@ -297,13 +314,13 @@ async function requireSession(){
     await updateHeaderUser(session);
     return true;
   }else{
-    EL('#auth').style.display='flex';
-    return false;
+    EL('#auth').style.display='flex'; return false;
   }
 }
 async function signIn(){
   const email = EL('#auth_email').value.trim();
   const password = EL('#auth_pwd').value;
+  showLoad();
   const { error } = await sb.auth.signInWithPassword({ email, password });
   EL('#auth_msg').textContent = error ? (error.message || 'Login dështoi') : '';
   if(!error){
@@ -312,27 +329,38 @@ async function signIn(){
     await updateHeaderUser(session);
     await refreshLeads();
   }
+  hideLoad();
 }
 async function signUp(){
   const email = EL('#auth_email').value.trim();
   const password = EL('#auth_pwd').value;
+  showLoad();
   const { error } = await sb.auth.signUp({ email, password });
   EL('#auth_msg').textContent = error ? (error.message || 'Sign up dështoi') : 'U krijua. Kontrollo email-in (nëse kërkohet verifikim).';
+  hideLoad();
 }
 async function signOut(){
+  showLoad();
   await sb.auth.signOut();
   LEADS = []; COMMENTS = {}; COUNTS = new Map(); render();
   EL('#user_slot').textContent = '';
   EL('#auth').style.display='flex';
+  hideLoad();
 }
+let AUTH_DEBOUNCE = null;
 sb.auth.onAuthStateChange(async (_evt, session) => {
-  if(session){
-    EL('#auth').style.display='none';
-    await updateHeaderUser(session);
-    await refreshLeads();
-  }else{
-    EL('#auth').style.display='flex';
-  }
+  clearTimeout(AUTH_DEBOUNCE);
+  AUTH_DEBOUNCE = setTimeout(async ()=>{
+    if(session){
+      EL('#auth').style.display='none';
+      await updateHeaderUser(session);
+      await refreshLeads();
+    }else{
+      EL('#auth').style.display='flex';
+      LEADS = []; COMMENTS = {}; COUNTS = new Map();
+      render();
+    }
+  }, 300);
 });
 
 /* ===== DB: COUNTS ===== */
@@ -352,19 +380,21 @@ async function fetchCounts(){
 /* ===== DB: LEADS ===== */
 async function fetchLeads(){
   try{
-    // provo me created_at_ts (schema aktuale)
-    let q = sb.from('leads')
+    console.time('[fetchLeads]');
+    // Prefero created_at_ts (schema aktuale)
+    let { data, error } = await sb
+      .from('leads')
       .select('id, created_at, created_at_ts, company, contact, phone, email, source, call_status, answer_outcome, next_follow_up, meeting_status, meeting_date, field_agent, nipt, industry, activity')
       .order('created_at_ts', { ascending:false });
-    let { data, error } = await q;
-    if(!error) return data||[];
+    if(!error){ console.timeEnd('[fetchLeads]'); return data||[]; }
 
-    // fallback me created_at
+    // Fallback created_at
     console.warn('[fetchLeads] fallback created_at:', error?.message||error);
     ({ data, error } = await sb
       .from('leads')
       .select('id, created_at, company, contact, phone, email, source, call_status, answer_outcome, next_follow_up, meeting_status, meeting_date, field_agent, nipt, industry, activity')
       .order('created_at', { ascending:false }));
+    console.timeEnd('[fetchLeads]');
     if(error) throw error;
     return data||[];
   }catch(err){
@@ -546,17 +576,12 @@ async function addLead(){
   }
   if(obj.meeting_date) obj.meeting_status = 'Pending';
 
-  EL('#loading').style.display='inline-flex';
+  showLoad();
   try{
     await insertLead(obj);
-
     // log “create” (nëse kalon RLS)
     try{
-      await sb.from('lead_updates').insert([{
-        lead_id: obj.id,
-        kind: 'create',
-        comment: obj._prime_note || null
-      }]);
+      await sb.from('lead_updates').insert([{ lead_id: obj.id, kind:'create', comment: obj._prime_note || null }]);
     }catch(e){ console.warn('[lead_updates create] skipped:', e?.message || e); }
 
     await refreshLeads();
@@ -570,7 +595,7 @@ async function addLead(){
   }catch(err){
     console.error('[addLead]', err);
   }finally{
-    EL('#loading').style.display='none';
+    hideLoad();
   }
 }
 
@@ -637,7 +662,7 @@ async function saveModal(){
 
   const autoFU = (!nextFU && (newResult==='Do ta eskaloj' || newResult==='Do të mendohet')) ? todayStr(addDays(new Date(),3)) : null;
 
-  EL('#loading').style.display='inline-flex';
+  showLoad();
   try{
     await insertUpdate(x.id, {
       new_result: newResult,
@@ -670,13 +695,13 @@ async function saveModal(){
     console.error('[saveModal]', err);
     alert('Ruajtja dështoi.');
   }finally{
-    EL('#loading').style.display='none';
+    hideLoad();
   }
 }
 async function quickFollow(id){
   const x = LEADS.find(i=>i.id===id); if(!x) return;
   const next = todayStr(addDays(new Date(),3));
-  EL('#loading').style.display='inline-flex';
+  showLoad();
   try{
     await insertUpdate(id, { new_result: x.answer_outcome || null, next_follow_up: next });
     await updateLeadFields(id, { next_follow_up: next });
@@ -685,7 +710,7 @@ async function quickFollow(id){
     console.error('[quickFollow]', err);
     alert('S’përditësua follow-up.');
   }finally{
-    EL('#loading').style.display='none';
+    hideLoad();
   }
 }
 
@@ -755,7 +780,7 @@ function downloadCSV(){
 
 /* ===== DATA FLOW ===== */
 async function refreshLeads(){
-  EL('#loading').style.display='inline-flex';
+  showLoad();
   try{
     const [leads, counts] = await Promise.all([ fetchLeads(), fetchCounts() ]);
     LEADS = Array.isArray(leads) ? leads : [];
@@ -765,7 +790,7 @@ async function refreshLeads(){
     console.error('[refreshLeads]', err);
     alert('Gabim gjatë rifreskimit të të dhënave.');
   }finally{
-    EL('#loading').style.display='none';
+    hideLoad();
   }
 }
 
